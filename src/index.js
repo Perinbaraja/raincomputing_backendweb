@@ -7,8 +7,8 @@ process.on("exit", function () {
 });
 server
   .create()
-  .then((app) => {
-    app.listen(port, () => {
+  .then((s) => {
+    s.listen(port, () => {
       console.log(`Server has started on port ${port}!`);
     });
   })
