@@ -240,7 +240,7 @@ router.post("/attorneydetails", async (req, res) => {
 });
 
 router.post("/allUser", async (req, res) => {
-  userModel.find({}, (err, list) => {
+  userModel.find({}, null, { sort: { firstname: 1 } }, (err, list) => {
     if (err) {
       res.json({
         msg: err,
