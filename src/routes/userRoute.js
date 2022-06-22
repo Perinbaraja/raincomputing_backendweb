@@ -239,4 +239,19 @@ router.post("/attorneydetails", async (req, res) => {
   });
 });
 
+router.post("/allUser", async (req, res) => {
+  userModel.find({}, (err, list) => {
+    if (err) {
+      res.json({
+        msg: err,
+      });
+    } else {
+      res.json({
+        success: true,
+        users: list,
+      });
+    }
+  });
+});
+
 module.exports = router;
