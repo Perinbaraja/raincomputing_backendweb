@@ -241,9 +241,9 @@ router.post("/attorneydetails", async (req, res) => {
 
 router.post("/allUser", async (req, res) => {
   const { userID } = req.body;
-  console.log("userID", userID);
+  console.log("userid", userID);
+
   userModel.find(
-    userID,
     { _id: { $ne: userID } },
     null,
     { sort: { firstname: 1 } },
