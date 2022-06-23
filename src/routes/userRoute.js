@@ -240,18 +240,26 @@ router.post("/attorneydetails", async (req, res) => {
 });
 
 router.post("/allUser", async (req, res) => {
-  userModel.find({}, null, { sort: { firstname: 1 } }, (err, list) => {
-    if (err) {
-      res.json({
-        msg: err,
-      });
-    } else {
-      res.json({
-        success: true,
-        users: list,
-      });
+  const { userID } = req.body;
+  console.log("userID", userID);
+  userModel.find(
+    userID,
+    { _id: { $ne: userID } },
+    null,
+    { sort: { firstname: 1 } },
+    (err, list) => {
+      if (err) {
+        res.json({
+          msg: err,
+        });
+      } else {
+        res.json({
+          success: true,
+          users: list,
+        });
+      }
     }
-  });
+  );
 });
 
 module.exports = router;
