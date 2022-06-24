@@ -17,13 +17,10 @@ const io = new Server(server, {
 const create = async () => {
   //DB connection
   mongoose
-    .connect(
-      "mongodb+srv://perinbaraja:9003611910Raja@syntorion.6iyih.mongodb.net/Rain",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
-    )
+    .connect("mongodb://localhost:27017/Rain", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log(err));
   io.on("connection", (socket) => {
@@ -64,9 +61,11 @@ const create = async () => {
     //   socket.to(data.room).emit("recive_message", data);
     //   console.log(data);
     // });
-
-    socket.on("disconnect", () => {
-      console.log("user disconnected", socket.id);
+    socket.on("close_manually", () => {
+      socket.disconnect();
+    });
+    socket.on("disconnect", (reason) => {
+      console.log("user disconnected", reason);
     });
   });
 
@@ -92,7 +91,7 @@ const create = async () => {
 
   app.use("/api/user", require("./routes/userRoute"));
   app.use("/api/chat", require("./routes/privateChatRoute"));
-  //   app.use("/api/property", require("./routes/propertyRoute"));
+  app.use("/api/pchat", require("./routes/chatRoute"));
   // return app;
 
   return server;
