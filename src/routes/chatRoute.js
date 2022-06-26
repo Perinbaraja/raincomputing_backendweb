@@ -4,10 +4,10 @@ const Chat = require("../models/ChatModel");
 const router = express.Router();
 
 router.post("/createChatRoom", async (req, res) => {
-  //console.log("starting creation");
+  console.log("starting creation");
   try {
     const { members } = req.body;
-    // console.log("Members :", members);
+    console.log("Members :", members);
     ChatRooms.create({ members }, (err, room) => {
       if (err) {
         return res.json({ msg: err });
