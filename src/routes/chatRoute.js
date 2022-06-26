@@ -4,19 +4,62 @@ const Chat = require("../models/ChatModel");
 const router = express.Router();
 
 router.post("/createChatRoom", async (req, res) => {
-  console.log("starting creation");
   try {
     const { members } = req.body;
-    console.log("Members :", members);
-    ChatRooms.create({ members }, (err, room) => {
+    ChatRooms.find({ members: members }, (err, isRoom) => {
       if (err) {
         return res.json({ msg: err });
       } else {
-        return res.json({ success: true, room });
+        if (isRoom.length < 1) {
+          ChatRooms.create({ members }, (err, room) => {
+            if (err) {
+              return res.json({ msg: err });
+            } else {
+              return res.json({ success: true, room });
+            }
+          });
+        } else {
+          return res.json({ success: true, room: isRoom[0] });
+        }
       }
     });
+    // ChatRooms.create({ members }, (err, room) => {
+    //   if (err) {
+    //     return res.json({ msg: err });
+    //   } else {
+    //     return res.json({ success: true, room });
+    //   }
+    // });
   } catch (err) {
     return res.json({ msg: err });
+  }
+});
+
+router.post("/getAllChatRoomByUserId", async (req, res) => {
+  try {
+    const { userID } = req.body;
+    const page = 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+    ChatRooms.find({ members: userID }, null, {
+      limit,
+      skip,
+      sort: { lastModified: -1 },
+    })
+      .populate({
+        path: "members",
+        select: "firstname lastname",
+        // match: { _id: { $ne: userID } },
+      })
+      .exec((err, chats) => {
+        if (err) {
+          return res.json({ msg: err });
+        } else {
+          return res.json({ success: true, chats });
+        }
+      });
+  } catch (err) {
+    return res.json({ msg: "error" });
   }
 });
 
@@ -24,7 +67,7 @@ router.post("/getChatRoomById", async (req, res) => {
   try {
     const { chatRoomId } = req.body;
     ChatRooms.findById(chatRoomId)
-      .populate("members.details")
+      .populate("members")
       .exec((err, chat) => {
         if (err) {
           return res.json({ msg: err });
@@ -56,7 +99,6 @@ router.post("/sendMessage", async (req, res) => {
       }
     });
   } catch (err) {
-    console.log(err);
     return res.json({ msg: err });
   }
 });
@@ -65,18 +107,16 @@ router.post("/getRoomMessages", async (req, res) => {
   try {
     const { chatRoomId } = req.body;
     Chat.find({ chatRoomId })
-      .populate("message.sender")
-      .populate("message.receivers")
+      // .populate("message.sender")
+      // .populate("message.receivers")
       .exec((err, roomMessages) => {
         if (err) {
-          console.log(err);
           return res.json({ msg: err });
         } else {
           return res.json({ success: true, roomMessages });
         }
       });
   } catch (err) {
-    console.log(err);
     return res.json({ msg: "error" });
   }
 });

@@ -17,13 +17,10 @@ const io = new Server(server, {
 const create = async () => {
   //DB connection
   mongoose
-    .connect(
-      "mongodb+srv://perinbaraja:9003611910Raja@syntorion.6iyih.mongodb.net/Rain",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
-    )
+    .connect(process.env.DB_STRING, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log(err));
   io.on("connection", (socket) => {

@@ -223,7 +223,7 @@ router.put("/edit", async (req, res) => {
 
 router.post("/attorneydetails", async (req, res) => {
   const { objectId } = req.body;
-  console.log("objectId" + objectId);
+  // console.log("objectId" + objectId);
   attorneyModel.findById(objectId, (err, attorneydetails) => {
     if (err) {
       res.json({
@@ -241,7 +241,7 @@ router.post("/attorneydetails", async (req, res) => {
 
 router.post("/allUser", async (req, res) => {
   const { userID } = req.body;
-  console.log("userid", userID);
+  // console.log("userid", userID);
 
   userModel.find(
     { _id: { $ne: userID } },

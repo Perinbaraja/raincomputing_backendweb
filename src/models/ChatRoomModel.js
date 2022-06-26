@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 const ChatRoomSchema = mongoose.Schema({
   members: [
     {
-      details: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "UserModel",
-      },
-      isAdmin: {
-        type: Boolean,
-      },
+      // details: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserModel",
     },
+    //   isAdmin: {
+    //     type: Boolean,
+    //   },
+    // },
   ],
 
   isGroup: {
