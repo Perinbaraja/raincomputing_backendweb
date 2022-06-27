@@ -7,7 +7,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const PrivateChatModel = require("./models/PrivateChatModel");
 const server = http.createServer(app);
-
+const Chat = require("./models/ChatModel");
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -30,23 +30,34 @@ const create = async () => {
 
     socket.on(
       "send_message",
-      async ({ sender, receiver, message, createdAt }) => {
-        PrivateChatModel.create(
-          { sender, receiver, message, createdAt },
-          (err, chat) => {
-            if (err) {
-              console.log("Chat Error :", err);
-            }
-            if (chat) {
-              socket.broadcast.to(receiver).emit("receive_message", {
-                sender,
-                receiver,
-                message,
-                createdAt,
-              });
-            }
+      async ({ chatRoomId, sender, receivers, messageData, createdAt }) => {
+        const messageQuery = {
+          chatRoomId,
+          message: {
+            sender,
+            receivers,
+            messageData,
+          },
+          createdAt,
+        };
+        Chat.create(messageQuery, async (err, chat) => {
+          if (err) {
+            console.log("Chat Error :", err);
           }
-        );
+          if (chat) {
+            await receivers.map((receiver) => {
+              socket.broadcast
+                .to(receiver)
+                .emit("receive_message", {
+                  chatRoomId,
+                  sender,
+                  receivers,
+                  messageData,
+                  createdAt,
+                });
+            });
+          }
+        });
         // socket.broadcast
         //   .to(receiver)
         //   .emit("receive_message", { sender, receiver, message, createdAt });

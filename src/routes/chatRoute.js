@@ -6,30 +6,41 @@ const router = express.Router();
 router.post("/createChatRoom", async (req, res) => {
   try {
     const { members } = req.body;
-    ChatRooms.find({ members: members }, (err, isRoom) => {
+    ChatRooms.find({ members: members.sort() }, (err, isRoom) => {
       if (err) {
         return res.json({ msg: err });
       } else {
         if (isRoom.length < 1) {
-          ChatRooms.create({ members }, (err, room) => {
+          ChatRooms.create({ members: members.sort() }, (err, room) => {
             if (err) {
               return res.json({ msg: err });
             } else {
-              return res.json({ success: true, room });
+              ChatRooms.findById(room._id)
+                .populate("members")
+                .exec((err, chat) => {
+                  if (err) {
+                    return res.json({ msg: err });
+                  } else {
+                    return res.json({ success: true, room: chat });
+                  }
+                });
+              // return res.json({ success: true, room });
             }
           });
         } else {
-          return res.json({ success: true, room: isRoom[0] });
+          ChatRooms.findById(isRoom[0]._id)
+            .populate("members")
+            .exec((err, chat) => {
+              if (err) {
+                return res.json({ msg: err });
+              } else {
+                return res.json({ success: true, room: chat });
+              }
+            });
+          // return res.json({ success: true, room: isRoom[0] });
         }
       }
     });
-    // ChatRooms.create({ members }, (err, room) => {
-    //   if (err) {
-    //     return res.json({ msg: err });
-    //   } else {
-    //     return res.json({ success: true, room });
-    //   }
-    // });
   } catch (err) {
     return res.json({ msg: err });
   }
@@ -44,7 +55,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
     ChatRooms.find({ members: userID }, null, {
       limit,
       skip,
-      sort: { lastModified: -1 },
+      sort: { createdAt: -1 },
     })
       .populate({
         path: "members",
@@ -109,11 +120,11 @@ router.post("/getRoomMessages", async (req, res) => {
     Chat.find({ chatRoomId })
       // .populate("message.sender")
       // .populate("message.receivers")
-      .exec((err, roomMessages) => {
+      .exec((err, messages) => {
         if (err) {
           return res.json({ msg: err });
         } else {
-          return res.json({ success: true, roomMessages });
+          return res.json({ success: true, messages });
         }
       });
   } catch (err) {
