@@ -4,6 +4,16 @@ const Chat = require("../models/ChatModel");
 const router = express.Router();
 
 router.post("/createChatRoom", async (req, res) => {
+  const { members, isGroup, groupName } = req.body;
+  let roomQuery = {
+    members: members.sort(),
+  };
+  if (isGroup) {
+    roomQuery.isGroup = isGroup;
+    roomQuery.groupName = groupName || "Group chat";
+  }
+  // console.log("roomQuery : ", roomQuery);
+
   try {
     const { members } = req.body;
     ChatRooms.find({ members: members.sort() }, (err, isRoom) => {
@@ -11,7 +21,7 @@ router.post("/createChatRoom", async (req, res) => {
         return res.json({ msg: err });
       } else {
         if (isRoom.length < 1) {
-          ChatRooms.create({ members: members.sort() }, (err, room) => {
+          ChatRooms.create(roomQuery, (err, room) => {
             if (err) {
               return res.json({ msg: err });
             } else {
