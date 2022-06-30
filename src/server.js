@@ -8,6 +8,8 @@ const { Server } = require("socket.io");
 const PrivateChatModel = require("./models/PrivateChatModel");
 const server = http.createServer(app);
 const Chat = require("./models/ChatModel");
+const config = require("./config");
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -17,7 +19,7 @@ const io = new Server(server, {
 const create = async () => {
   //DB connection
   mongoose
-    .connect(process.env.DB_STRING, {
+    .connect(config.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
@@ -46,15 +48,13 @@ const create = async () => {
           }
           if (chat) {
             await receivers.map((receiver) => {
-              socket.broadcast
-                .to(receiver)
-                .emit("receive_message", {
-                  chatRoomId,
-                  sender,
-                  receivers,
-                  messageData,
-                  createdAt,
-                });
+              socket.broadcast.to(receiver).emit("receive_message", {
+                chatRoomId,
+                sender,
+                receivers,
+                messageData,
+                createdAt,
+              });
             });
           }
         });
