@@ -1,5 +1,5 @@
 # raincomputing_backendweb
 
-yarn install
+npm install
 
-yarn start
+npm start
