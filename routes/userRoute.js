@@ -171,20 +171,20 @@ router.post("/attorneyCount", async (req, res) => {
   );
 });
 
-router.get("/attorneys", async (req, res) => {
-  attorneyModel.find({}, null, { limit: 100 }, (err, list) => {
-    if (err) {
-      res.json({
-        msg: err,
-      });
-    } else {
-      res.json({
-        success: true,
-        attorneys: list,
-      });
-    }
-  });
-});
+// router.get("/attorneys", async (req, res) => {
+//   attorneyModel.find({}, null, { limit: 100 }, (err, list) => {
+//     if (err) {
+//       res.json({
+//         msg: err,
+//       });
+//     } else {
+//       res.json({
+//         success: true,
+//         attorneys: list,
+//       });
+//     }
+//   });
+// });
 
 router.put("/edit", async (req, res) => {
   const { email, firstname, lastname } = req.body;
