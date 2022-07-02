@@ -98,7 +98,7 @@ router.post("/login", async (req, res) => {
             return res.json({
               success: true,
               userID: isUser._id,
-              username: isUser.firstname + isUser.lastname,
+              username: isUser.firstname + " " + isUser.lastname,
               token: "JWT " + jwtToken,
             });
           }
