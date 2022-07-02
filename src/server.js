@@ -98,7 +98,7 @@ const create = async () => {
 
   //Middleware configuration
 
-  app.get("/", (req, res) => res.send("Hello"));
+  app.get("/", (req, res) => res.send("Rain computing api"));
 
   app.use("/api/user", require("./routes/userRoute"));
   app.use("/api/chat", require("./routes/privateChatRoute"));
