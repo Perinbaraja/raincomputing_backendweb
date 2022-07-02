@@ -263,29 +263,5 @@ router.post("/allUser", async (req, res) => {
     }
   );
 });
-router.get("/allUser", async (req, res) => {
-  // const { userID } = req.body;
-  // console.log("userid", userID);
-
-  userModel.find(
-    {},
-    null,
-    // { sort: { firstname: 1 } },
-    (err, list) => {
-      if (err) {
-        console.log("err", err);
-
-        res.json({
-          msg: err,
-        });
-      } else {
-        res.json({
-          success: true,
-          users: list,
-        });
-      }
-    }
-  );
-});
 
 module.exports = router;
