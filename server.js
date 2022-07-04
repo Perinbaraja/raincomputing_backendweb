@@ -12,7 +12,7 @@ const config = require("./config");
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://raincomputing.azurewebsites.net/",
     methods: ["GET", "POST"],
   },
 });
