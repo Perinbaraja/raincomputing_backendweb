@@ -12,7 +12,7 @@ const config = require("./config");
 
 const io = new Server(server, {
   cors: {
-    origin: "https://raincomputing.azurewebsites.net/",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
