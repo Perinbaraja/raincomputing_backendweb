@@ -1,8 +1,10 @@
 const config = {
-  MONGO_URL:
-    "mongodb+srv://perinbaraja:9003611910Raja@syntorion.6iyih.mongodb.net/Rain",
+  MONGO_URL: "mongodb://localhost:27017/Rain",
   JWT_SECRET: "dev",
   PORT: 5100,
+  MAIL_SERVICE: "gmail",
+  SENDER_MAIL: "rpmongotest@gmail.com",
+  MAIL_PASSWORD: "qpomthjiesygydjn",
 };
 
 module.exports = config;

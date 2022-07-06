@@ -7,6 +7,7 @@ const ActiveSessionModel = require("../models/activeSession");
 const { isAuthenticated } = require("../helpers/safeRoutes");
 const router = express.Router();
 const attorneyModel = require("../models/attorneymodels");
+// const { sendMail } = require("../services/mail.services");
 router.post("/register", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
   // console.log(req.body, "req.body");
@@ -43,13 +44,20 @@ router.post("/register", async (req, res) => {
         password: hashPassword,
         aflag: true,
       };
-      userModel.create(queryData, (err, user) => {
+      userModel.create(queryData, async (err, user) => {
         if (err) {
           return res.json({
             msg: "User Registeration failed",
             error: err,
           });
         } else {
+          // const mailOptions = {
+          //   to: email,
+          //   subject: "Account Register Rain Computing",
+          //   html: "<div><h3>hi From RC</h3><p>Successfully recieved email</p></div>",
+          // };
+          // const mailResult = await sendMail(mailOptions);
+          // console.log("Mail response", mailResult);
           return res.json({
             success: true,
             msg: "User Registeration successful",

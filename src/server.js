@@ -9,10 +9,11 @@ const PrivateChatModel = require("./models/PrivateChatModel");
 const server = http.createServer(app);
 const Chat = require("./models/ChatModel");
 const config = require("./config");
+const ChatRooms = require("./models/ChatRoomModel");
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -47,15 +48,25 @@ const create = async () => {
             console.log("Chat Error :", err);
           }
           if (chat) {
-            await receivers.map((receiver) => {
-              socket.broadcast.to(receiver).emit("receive_message", {
-                chatRoomId,
-                sender,
-                receivers,
-                messageData,
-                createdAt,
-              });
-            });
+            ChatRooms.findByIdAndUpdate(
+              chatRoomId,
+              { lastModified: Date.now() },
+              async (err, modified) => {
+                if (err) {
+                  console.log("modification Error :", err);
+                } else {
+                  await receivers.map((receiver) => {
+                    socket.broadcast.to(receiver).emit("receive_message", {
+                      chatRoomId,
+                      sender,
+                      receivers,
+                      messageData,
+                      createdAt,
+                    });
+                  });
+                }
+              }
+            );
           }
         });
         // socket.broadcast

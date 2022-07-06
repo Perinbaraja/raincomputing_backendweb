@@ -7,12 +7,13 @@ router.post("/createChatRoom", async (req, res) => {
   const { members, isGroup, groupName } = req.body;
   let roomQuery = {
     members: members.sort(),
+    lastModified: Date.now(),
+    createdAt: Date.now(),
   };
   if (isGroup) {
     roomQuery.isGroup = isGroup;
     roomQuery.groupName = groupName || "Group chat";
   }
-  // console.log("roomQuery : ", roomQuery);
 
   try {
     const { members } = req.body;
@@ -65,7 +66,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
     ChatRooms.find({ members: userID }, null, {
       limit,
       skip,
-      sort: { createdAt: -1 },
+      sort: { lastModified: -1 },
     })
       .populate({
         path: "members",
