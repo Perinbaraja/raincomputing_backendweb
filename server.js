@@ -103,6 +103,10 @@ const create = async () => {
   app.use("/api/user", require("./routes/userRoute"));
   app.use("/api/chat", require("./routes/privateChatRoute"));
   app.use("/api/pchat", require("./routes/chatRoute"));
+  app.use("/api/attorney", require("./routes/attorneyRegRoute"));
+  app.use("/api/firm", require("./routes/firmRegRoute"));
+
+
   // return app;
 
   return server;

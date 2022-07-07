@@ -7,6 +7,8 @@ const ActiveSessionModel = require("../models/activeSession");
 const { isAuthenticated } = require("../helpers/safeRoutes");
 const router = express.Router();
 const attorneyModel = require("../models/attorneymodels");
+//const sgMail = require('@sendgrid/mail');
+
 router.post("/register", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
   // console.log(req.body, "req.body");
@@ -82,6 +84,7 @@ router.post("/login", async (req, res) => {
       const result = await hashValidator(password, isUser.password);
       if (result) {
         console.log(result, "result");
+        //sendMail();
         const jwtToken = await JWTtokenGenerator({ user: isUser._id });
         const query = {
           userId: isUser._id,
@@ -263,5 +266,29 @@ router.post("/allUser", async (req, res) => {
     }
   );
 });
+
+// const sendMail=()=>{
+
+ 
+//   sgMail.setApiKey("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")
+  
+//   const msg = {
+//     to: 'dk18026@gmail.com', // Change to your recipient
+//     from: 'dk18026@gmail.com', // Change to your verified sender
+//     subject: 'Sending with SendGrid is Fun',
+//     text: 'and easy to do anywhere, even with Node.js',
+//     html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+//   }
+  
+//   sgMail
+//     .send(msg)
+//     .then((response) => {
+//       console.log(response[0].statusCode)
+//       console.log(response[0].headers)
+//     })
+//     .catch((error) => {
+//       console.error(error)
+//     })
+// }
 
 module.exports = router;
