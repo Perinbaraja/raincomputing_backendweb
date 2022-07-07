@@ -66,7 +66,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
     ChatRooms.find({ members: userID }, null, {
       limit,
       skip,
-      sort: { lastModified: -1 },
+      // sort: { lastModified: -1 },
     })
       .populate({
         path: "members",
@@ -75,6 +75,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
       })
       .exec((err, chats) => {
         if (err) {
+          console.log("erro", err);
           return res.json({ msg: err });
         } else {
           return res.json({ success: true, chats });
