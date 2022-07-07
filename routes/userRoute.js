@@ -106,7 +106,7 @@ router.post("/login", async (req, res) => {
             return res.json({
               success: true,
               userID: isUser._id,
-              username: isUser.firstname + isUser.lastname,
+              username: isUser.firstname + " " + isUser.lastname,
               token: "JWT " + jwtToken,
             });
           }
@@ -249,14 +249,17 @@ router.post("/attorneydetails", async (req, res) => {
 
 router.post("/allUser", async (req, res) => {
   const { userID } = req.body;
-  // console.log("userid", userID);
 
   userModel.find(
     { _id: { $ne: userID } },
     null,
-    { sort: { firstname: 1 } },
+    {
+      sort: { firstname: 1 },
+    },
     (err, list) => {
       if (err) {
+        console.log("allUseruserid", err);
+
         res.json({
           msg: err,
         });
