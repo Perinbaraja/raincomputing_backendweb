@@ -1,15 +1,17 @@
 const express = require("express");
+const _ = require("lodash");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const app = express();
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const PrivateChatModel = require("./models/PrivateChatModel");
 const server = http.createServer(app);
 const Chat = require("./models/ChatModel");
 const config = require("./config");
 const ChatRooms = require("./models/ChatRoomModel");
+const UserModel = require("./models/userModel");
+const { sendMail } = require("./services/mail.services");
 
 const io = new Server(server, {
   cors: {
@@ -17,6 +19,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+
 const create = async () => {
   //DB connection
   mongoose
@@ -26,10 +29,24 @@ const create = async () => {
     })
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log(err));
+
+  //Users object to save online users
+  let users = {};
+
+  //Socket methods
   io.on("connection", (socket) => {
-    const id = socket.handshake.query.id;
-    console.log(`User Connected: ${id}`);
-    socket.join(id);
+    const userId = socket.handshake.query.id;
+    console.log(`User Connected: ${userId}`);
+    socket.join(userId);
+
+    // CHECK IS USER EXHIST
+    if (!users[userId]) users[userId] = [];
+
+    // PUSH SOCKET ID FOR PARTICULAR USER ID
+    users[userId].push(socket.id);
+
+    // USER IS ONLINE BROAD CAST TO ALL CONNECTED USERS
+    io.sockets.emit("online", users);
 
     socket.on(
       "send_message",
@@ -56,13 +73,36 @@ const create = async () => {
                   console.log("modification Error :", err);
                 } else {
                   await receivers.map((receiver) => {
-                    socket.broadcast.to(receiver).emit("receive_message", {
-                      chatRoomId,
-                      sender,
-                      receivers,
-                      messageData,
-                      createdAt,
-                    });
+                    if (!(receiver in users)) {
+                      console.log("Reciver is offline  : ", receiver);
+                      UserModel.findById(
+                        receiver,
+                        async (err, recivingUser) => {
+                          if (err) {
+                            console.log("Error in getting user :", err);
+                          } else {
+                            const mailOptions = {
+                              to: recivingUser.email,
+                              subject: "New message in chat",
+                              html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+                  <a href="http://localhost:3000/rpchat">View Message</a></div>`,
+                            };
+                            const mailResult = await sendMail(mailOptions);
+                            console.log("Mail response", mailResult);
+                          }
+                        }
+                      );
+                    } else {
+                      console.log("Reciver is online  : ", receiver);
+
+                      socket.broadcast.to(receiver).emit("receive_message", {
+                        chatRoomId,
+                        sender,
+                        receivers,
+                        messageData,
+                        createdAt,
+                      });
+                    }
                   });
                 }
               }
@@ -74,19 +114,21 @@ const create = async () => {
         //   .emit("receive_message", { sender, receiver, message, createdAt });
       }
     );
-    // socket.on("join_room", (data) => {
-    //   socket.join(data);
-    //   console.log(`user with id: ${socket.id} joined room: ${data}`);
-    // });
 
-    // socket.on("send_message", (data) => {
-    //   socket.to(data.room).emit("recive_message", data);
-    //   console.log(data);
-    // });
     socket.on("close_manually", () => {
       socket.disconnect();
     });
     socket.on("disconnect", (reason) => {
+      // REMOVE FROM SOCKET USERS
+      _.remove(users[userId], (u) => u === socket.id);
+      if (users[userId].length === 0) {
+        // REMOVE OBJECT
+        delete users[userId];
+        // ISER IS OFFLINE BROAD CAST TO ALL CONNECTED USERS
+        io.sockets.emit("online", users);
+      }
+
+      socket.disconnect(); // DISCONNECT SOCKET
       console.log("user disconnected", reason);
     });
   });
