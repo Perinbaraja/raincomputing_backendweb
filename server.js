@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-require("dotenv").config();
+// require("dotenv").config();
 const app = express();
 const cors = require("cors");
 const http = require("http");
@@ -12,7 +12,7 @@ const config = require("./config");
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
