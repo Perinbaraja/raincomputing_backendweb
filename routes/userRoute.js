@@ -289,8 +289,7 @@ router.get("/whoiam", isAuthenticated, async (req, res) => {
   return res.json({ success: true, userid: req.userid });
 });
 
-router.get("/logout", isAuthenticated, async (req, res) => {
-  console.log("user id", req.userid);
+router.get("/logout", async (req, res) => {
   res.cookie("jwt", "", {
     httpOnly: true,
     maxAge: 1,
