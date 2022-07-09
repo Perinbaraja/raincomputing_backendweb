@@ -90,28 +90,33 @@ router.post("/login", async (req, res) => {
       const result = await hashValidator(password, isUser.password);
       if (result) {
         console.log(result, "result");
-        const jwtToken = await JWTtokenGenerator({ user: isUser._id });
+        const jwtToken = await JWTtokenGenerator({ id: isUser._id });
         const query = {
           userId: isUser._id,
           username: isUser.firstname + isUser.lastname,
           aflag: true,
           token: "JWT " + jwtToken,
         };
-        ActiveSessionModel.create(query, (err, session) => {
-          if (err) {
-            return res.json({
-              msg: "Error Occured!!",
-            });
-          } else {
-            return res.json({
-              success: true,
-              userID: isUser._id,
-              username: isUser.firstname + " " + isUser.lastname,
-              email: isUser.email,
-              token: "JWT " + jwtToken,
-            });
-          }
+        res.cookie("jwt", jwtToken, {
+          httpOnly: true,
+          maxAge: 30 * 24 * 60 * 60 * 1000,
         });
+        console.log("Setting cookie in res");
+        // ActiveSessionModel.create(query, (err, session) => {
+        //   if (err) {
+        //     return res.json({
+        //       msg: "Error Occured!!",
+        //     });
+        //   } else {
+        return res.json({
+          success: true,
+          userID: isUser._id,
+          username: isUser.firstname + " " + isUser.lastname,
+          email: isUser.email,
+          token: "JWT " + jwtToken,
+        });
+        //   }
+        // });
       } else {
         return res.json({
           msg: "Password Doesn't match",
@@ -253,7 +258,6 @@ router.post("/attorneydetails", async (req, res) => {
 
 router.post("/allUser", async (req, res) => {
   const { userID } = req.body;
-
   userModel.find(
     { _id: { $ne: userID } },
     null,
@@ -275,6 +279,20 @@ router.post("/allUser", async (req, res) => {
       }
     }
   );
+});
+
+router.get("/whoiam", isAuthenticated, async (req, res) => {
+  console.log("user id", req.userid);
+  return res.json({ success: true, userid: req.userid });
+});
+
+router.get("/logout", isAuthenticated, async (req, res) => {
+  console.log("user id", req.userid);
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    maxAge: 1,
+  });
+  return res.json({ success: true });
 });
 
 module.exports = router;

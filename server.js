@@ -1,5 +1,6 @@
 const express = require("express");
 const _ = require("lodash");
+const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const app = express();
@@ -21,6 +22,25 @@ const io = new Server(server, {
 });
 
 const create = async () => {
+  //Allowing cors
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+      exposedHeaders: ["set-cookie"],
+    })
+  );
+  //Body parser
+  app.use(express.json({ limit: "50mb" }));
+  app.use(
+    express.urlencoded({
+      limit: "50mb",
+      extended: true,
+      parameterLimit: 500000,
+    })
+  );
+  app.use(cookieParser());
+
   //DB connection
   mongoose
     .connect(config.MONGO_URL, {
@@ -132,22 +152,6 @@ const create = async () => {
       console.log("user disconnected", reason);
     });
   });
-
-  //Allowing cors
-  app.use(cors());
-  //Body parser
-  app.use(express.json({ limit: "50mb" }));
-  app.use(
-    express.urlencoded({
-      limit: "50mb",
-      extended: true,
-      parameterLimit: 500000,
-    })
-  );
-
-  //socket io//
-
-  // app.use(cors());
 
   //Middleware configuration
 
