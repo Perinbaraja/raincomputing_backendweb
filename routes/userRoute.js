@@ -107,6 +107,7 @@ router.post("/login", async (req, res) => {
               success: true,
               userID: isUser._id,
               username: isUser.firstname + " " + isUser.lastname,
+              email: isUser.email,
               token: "JWT " + jwtToken,
             });
           }
@@ -200,6 +201,7 @@ router.put("/edit", async (req, res) => {
     firstname: firstname,
     lastname: lastname,
   };
+
   userModel.findOneAndUpdate({ email: email }, queryData, (err, user) => {
     if (err) {
       return res.json({
@@ -221,7 +223,9 @@ router.put("/edit", async (req, res) => {
           isUser.__v = null;
           return res.json({
             success: true,
-            user: isUser,
+            userID: isUser._id,
+            username: isUser.firstname + " " + isUser.lastname,
+            email: isUser.email,
           });
         }
       });
