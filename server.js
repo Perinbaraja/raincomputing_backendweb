@@ -65,61 +65,49 @@ const create = async () => {
             console.log("Chat Error :", err);
           }
           if (chat) {
-            await receivers.map((receiver) => {
-              // socket.broadcast.to(roomId).emit('user-connected', userId);
-              socket.broadcast.to(receiver).emit("receive_message", {
-                chatRoomId,
-                sender,
-                receivers,
-                messageData,
-                createdAt,
-              });
-            });
-          }
-          // if (chat) {
-          //   ChatRooms.findByIdAndUpdate(
-          //     chatRoomId,
-          //     { lastModified: Date.now() },
-          //     async (err, modified) => {
-          //       if (err) {
-          //         console.log("modification Error :", err);
-          //       } else {
-          //         await receivers.map((receiver) => {
-          //           if (!(receiver in users)) {
-          //             console.log("Reciver is offline  : ", receiver);
-          //             UserModel.findById(
-          //               receiver,
-          //               async (err, recivingUser) => {
-          //                 if (err) {
-          //                   console.log("Error in getting user :", err);
-          //                 } else {
-          //                   const mailOptions = {
-          //                     to: recivingUser.email,
-          //                     subject: "New message in chat",
-          //                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-          //         <a href="http://localhost:3000/rpchat">View Message</a></div>`,
-          //                   };
-          //                   const mailResult = await sendMail(mailOptions);
-          //                   console.log("Mail response", mailResult);
-          //                 }
-          //               }
-          //             );
-          //           } else {
-          //             console.log("Reciver is online  : ", receiver);
+            ChatRooms.findByIdAndUpdate(
+              chatRoomId,
+              { lastModified: Date.now() },
+              async (err, modified) => {
+                if (err) {
+                  console.log("modification Error :", err);
+                } else {
+                  await receivers.map((receiver) => {
+                    if (!(receiver in users)) {
+                      console.log("Reciver is offline  : ", receiver);
+                      UserModel.findById(
+                        receiver,
+                        async (err, recivingUser) => {
+                          if (err) {
+                            console.log("Error in getting user :", err);
+                          } else {
+                            const mailOptions = {
+                              to: recivingUser.email,
+                              subject: "New message in chat",
+                              html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+                  <a href="http://localhost:3000/rpchat">View Message</a></div>`,
+                            };
+                            // const mailResult = await sendMail(mailOptions);
+                            // console.log("Mail response", mailResult);
+                          }
+                        }
+                      );
+                    } else {
+                      console.log("Reciver is online  : ", receiver);
 
-          //             socket.broadcast.to(receiver).emit("receive_message", {
-          //               chatRoomId,
-          //               sender,
-          //               receivers,
-          //               messageData,
-          //               createdAt,
-          //             });
-          //           }
-          //         });
-          //       }
-          //     }
-          //   );
-          // }
+                      socket.broadcast.to(receiver).emit("receive_message", {
+                        chatRoomId,
+                        sender,
+                        receivers,
+                        messageData,
+                        createdAt,
+                      });
+                    }
+                  });
+                }
+              }
+            );
+          }
         });
         // socket.broadcast
         //   .to(receiver)
@@ -132,13 +120,13 @@ const create = async () => {
     });
     socket.on("disconnect", (reason) => {
       // REMOVE FROM SOCKET USERS
-      // _.remove(users[userId], (u) => u === socket.id);
-      // if (users[userId].length === 0) {
-      //   // REMOVE OBJECT
-      //   delete users[userId];
-      //   // ISER IS OFFLINE BROAD CAST TO ALL CONNECTED USERS
-      //   io.sockets.emit("online", users);
-      // }
+      _.remove(users[userId], (u) => u === socket.id);
+      if (users[userId].length === 0) {
+        // REMOVE OBJECT
+        delete users[userId];
+        // ISER IS OFFLINE BROAD CAST TO ALL CONNECTED USERS
+        io.sockets.emit("online", users);
+      }
 
       socket.disconnect(); // DISCONNECT SOCKET
       console.log("user disconnected", reason);

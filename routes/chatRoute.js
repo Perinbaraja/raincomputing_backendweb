@@ -66,7 +66,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
     ChatRooms.find({ members: userID }, null, {
       limit,
       skip,
-      // sort: { lastModified: -1 },
+      sort: { lastModified: -1 },
     })
       .populate({
         path: "members",
