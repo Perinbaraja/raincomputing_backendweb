@@ -8,6 +8,9 @@ const { isAuthenticated } = require("../helpers/safeRoutes");
 const router = express.Router();
 const attorneyModel = require("../models/attorneymodels");
 // const { sendMail } = require("../services/mail.services");
+
+router.get("/", (req, res) => res.send("User Route"));
+
 router.post("/register", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
   // console.log(req.body, "req.body");

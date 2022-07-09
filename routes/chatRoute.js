@@ -3,6 +3,8 @@ const ChatRooms = require("../models/ChatRoomModel");
 const Chat = require("../models/ChatModel");
 const router = express.Router();
 
+router.get("/", (req, res) => res.send("Chat Route"));
+
 router.post("/createChatRoom", async (req, res) => {
   const { members, isGroup, groupName } = req.body;
   let roomQuery = {
