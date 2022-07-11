@@ -96,7 +96,8 @@ router.post("/login", async (req, res) => {
         const jwtToken = await JWTtokenGenerator({ id: isUser._id });
         const query = {
           userId: isUser._id,
-          username: isUser.firstname + isUser.lastname,
+          firstname: isUser.firstname,
+          lastname: isUser.lastname,
           aflag: true,
           token: "JWT " + jwtToken,
         };
@@ -114,7 +115,8 @@ router.post("/login", async (req, res) => {
         return res.json({
           success: true,
           userID: isUser._id,
-          username: isUser.firstname + " " + isUser.lastname,
+          firstname: isUser.firstname,
+          lastname: isUser.lastname,
           email: isUser.email,
           token: "JWT " + jwtToken,
         });
@@ -232,7 +234,8 @@ router.put("/edit", async (req, res) => {
           return res.json({
             success: true,
             userID: isUser._id,
-            username: isUser.firstname + " " + isUser.lastname,
+            firstname: isUser.firstname,
+            lastname: isUser.lastname,
             email: isUser.email,
           });
         }
