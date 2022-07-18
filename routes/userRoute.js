@@ -119,6 +119,7 @@ router.post("/login", async (req, res) => {
           lastname: isUser.lastname,
           email: isUser.email,
           token: "JWT " + jwtToken,
+          attorneyStatus: isUser.attorneyStatus,
         });
         //   }
         // });
@@ -237,6 +238,7 @@ router.put("/edit", async (req, res) => {
             firstname: isUser.firstname,
             lastname: isUser.lastname,
             email: isUser.email,
+            attorneyStatus: isUser.attorneyStatus,
           });
         }
       });

@@ -65,7 +65,7 @@ router.post("/getAllChatRoomByUserId", async (req, res) => {
     const page = 1;
     const limit = 10;
     const skip = (page - 1) * limit;
-    ChatRooms.find({ members: userID }, null, {
+    ChatRooms.find({ members: userID ,aflag: true }, null, {
       limit,
       skip,
       sort: { lastModified: -1 },
@@ -145,5 +145,59 @@ router.post("/getRoomMessages", async (req, res) => {
     return res.json({ msg: "error" });
   }
 });
+
+router.put("/deleteChat",async(req,res)=>{
+  const { chatRoomId } = req.body;
+  const deletedGroup =await ChatRooms.findByIdAndUpdate(
+    chatRoomId,
+    {
+      aflag: false,
+     lastModified: Date.now(),
+    }
+  )
+  if (!deletedGroup) {
+    res.status(404);
+  } else {
+    res.json({success:true,deletedGroup});
+  }
+});
+router.put("/removeGroupmember",async(req,res)=>{
+  const { chatRoomId, members } = req.body;
+    const removed = await ChatRooms.findByIdAndUpdate(
+    chatRoomId,
+    {
+     $pullAll:{members},
+     lastModified: Date.now(),
+    },
+    {
+      new: true,
+    }
+  )
+  if (!removed) {
+    res.status(404);
+  } else {
+    res.json({success:true,removed});
+  }
+});
+
+router.put("/addtoGroup",async(req,res)=>{
+  const { chatRoomId, members,groupName } = req.body;
+  const added = await ChatRooms.findByIdAndUpdate(
+    chatRoomId,
+    {
+      $push: { members },
+      lastModified: Date.now(),
+      groupName:groupName
+    },
+    {
+      new: true,
+    }
+  )
+  if (!added) {
+    res.status(404);
+  } else {
+    res.json({success:true,added});
+  }
+})
 
 module.exports = router;

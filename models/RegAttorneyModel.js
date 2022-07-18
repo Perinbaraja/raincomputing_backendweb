@@ -1,35 +1,36 @@
 const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema({
-  firstname: {
+const RegAttorneySchema = mongoose.Schema({
+  regUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "UserModel",
+  },
+  barNumber: {
     type: String,
     required: true,
   },
-  lastname: {
+  phoneNumber: {
     type: String,
     required: true,
   },
-  email: {
-    type: String,
-    required: true,
-  },
-  password: {
+  address: {
     type: String,
     required: true,
   },
   aflag: {
     type: Boolean,
   },
-  date: {
+  regAt: {
     type: Date,
     default: Date.now(),
-  },
-  attorneyStatus: {
-    type: String,
   },
   lastModified: {
     type: Date,
     default: Date.now(),
   },
+  status: {
+    type: String,
+  },
 });
-module.exports = mongoose.model("UserModel", userSchema);
+
+module.exports = mongoose.model("RegAttorney", RegAttorneySchema);
