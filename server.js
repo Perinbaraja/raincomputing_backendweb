@@ -13,6 +13,7 @@ const config = require("./config");
 const ChatRooms = require("./models/ChatRoomModel");
 const UserModel = require("./models/userModel");
 const { sendMail } = require("./services/mail.services");
+const Attachments = require("./models/AttachmentModel");
 
 const io = new Server(server, {
   cors: {
@@ -70,68 +71,97 @@ const create = async () => {
 
     socket.on(
       "send_message",
-      async ({ chatRoomId, sender, receivers, messageData, createdAt }) => {
-        const messageQuery = {
-          chatRoomId,
-          message: {
-            sender,
-            receivers,
-            messageData,
-          },
-          createdAt,
-        };
-        Chat.create(messageQuery, async (err, chat) => {
-          if (err) {
-            console.log("Chat Error :", err);
-          }
-          if (chat) {
-            ChatRooms.findByIdAndUpdate(
-              chatRoomId,
-              { lastModified: Date.now() },
-              async (err, modified) => {
-                if (err) {
-                  console.log("modification Error :", err);
-                } else {
-                  await receivers.map((receiver) => {
-                    if (!(receiver in users)) {
-                      console.log("Reciver is offline  : ", receiver);
-                      UserModel.findById(
-                        receiver,
-                        async (err, recivingUser) => {
-                          if (err) {
-                            console.log("Error in getting user :", err);
-                          } else {
-                            const mailOptions = {
-                              to: recivingUser.email,
-                              subject: "New message in chat",
-                              html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-                  <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
-                            };
-                            // const mailResult = await sendMail(mailOptions);
-                            // console.log("Mail response", mailResult);
-                          }
-                        }
-                      );
-                    } else {
-                      console.log("Reciver is online  : ", receiver);
+      async ({
+        chatRoomId,
+        sender,
+        receivers,
+        messageData,
+        createdAt,
+        isAttachment = false,
+        attachments,
+      }) => {
+        let attachmentsObjId = [];
 
-                      socket.broadcast.to(receiver).emit("receive_message", {
-                        chatRoomId,
-                        sender,
-                        receivers,
-                        messageData,
-                        createdAt,
-                      });
-                    }
-                  });
+        const handleMessageandAttachment = () => {
+          const messageQuery = {
+            chatRoomId,
+            message: {
+              sender,
+              receivers,
+              messageData,
+            },
+            attachments: attachmentsObjId,
+            isAttachment,
+            createdAt,
+          };
+
+          Chat.create(messageQuery, async (err, chat) => {
+            if (err) {
+              console.log("Chat Error :", err);
+            }
+            if (chat) {
+              ChatRooms.findByIdAndUpdate(
+                chatRoomId,
+                { lastModified: Date.now() },
+                async (err, modified) => {
+                  if (err) {
+                    console.log("modification Error :", err);
+                  } else {
+                    await receivers.map((receiver) => {
+                      if (!(receiver in users)) {
+                        console.log("Reciver is offline  : ", receiver);
+                        UserModel.findById(
+                          receiver,
+                          async (err, recivingUser) => {
+                            if (err) {
+                              console.log("Error in getting user :", err);
+                            } else {
+                              const mailOptions = {
+                                to: recivingUser.email,
+                                subject: "New message in chat",
+                                html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+            <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
+                              };
+                              // const mailResult = await sendMail(mailOptions);
+                              // console.log("Mail response", mailResult);
+                            }
+                          }
+                        );
+                      } else {
+                        console.log("Reciver is online  : ", receiver);
+
+                        socket.broadcast.to(receiver).emit("receive_message", {
+                          chatRoomId,
+                          message: {
+                            sender,
+                            receivers,
+                            messageData,
+                          },
+                          createdAt,
+                          isAttachment,
+                          attachments,
+                        });
+                      }
+                    });
+                  }
                 }
-              }
-            );
-          }
-        });
-        // socket.broadcast
-        //   .to(receiver)
-        //   .emit("receive_message", { sender, receiver, message, createdAt });
+              );
+            }
+          });
+        };
+
+        if (isAttachment) {
+          Attachments.create(attachments, async (err, atts) => {
+            if (err) {
+              console.log("attachments Error :", err);
+            } else {
+              attachmentsObjId = await atts.map((i) => i._id);
+              handleMessageandAttachment();
+            }
+          });
+        } else {
+          handleMessageandAttachment();
+        }
       }
     );
 

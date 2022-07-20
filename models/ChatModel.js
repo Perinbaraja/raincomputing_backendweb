@@ -19,7 +19,13 @@ const ChatSchema = mongoose.Schema({
     messageData: { type: String, required: true },
   },
 
-  attachement: { type: Boolean, default: false },
+  isAttachment: { type: Boolean, default: false },
+  attachments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Attachments",
+    },
+  ],
   aflag: { type: Boolean, default: true },
   lastModified: {
     type: Date,
