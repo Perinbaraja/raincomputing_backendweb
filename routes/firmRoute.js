@@ -87,6 +87,43 @@ router.post("/getFirmById", async (req, res) => {
  
 });
 
+router.put("/addtofirm",async(req,res)=>{
+  const { firmId, members } = req.body;
+  const added = await FirmModel.findByIdAndUpdate(
+    firmId,
+    {
+      $push: { members },
+      lastModified: Date.now(),
+    },
+    {
+      new: true,
+    }
+  )
+  if (!added) {
+    res.status(404);
+  } else {
+    res.json({success:true,added});
+  }
+})
+
+router.put("/removefirmmember",async(req,res)=>{
+  const { firmId, members } = req.body;
+    const removed = await FirmModel.findByIdAndUpdate(
+      firmId,
+    {
+     $pullAll:{members},
+     lastModified: Date.now(),
+    },
+    {
+      new: true,
+    }
+  )
+  if (!removed) {
+    res.status(404);
+  } else {
+    res.json({success:true,removed});
+  }
+});
 
 
 module.exports = router;
