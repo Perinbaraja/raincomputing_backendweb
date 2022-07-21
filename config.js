@@ -6,6 +6,8 @@ const config = {
   MAIL_SERVICE: "gmail",
   SENDER_MAIL: "rpmongotest@gmail.com",
   MAIL_PASSWORD: "qpomthjiesygydjn",
+  RESET_PASSWORD: "dev123",
+  FE_URL:"https://raincomputing1.azurewebsites.net"
 };
 
 module.exports = config;
