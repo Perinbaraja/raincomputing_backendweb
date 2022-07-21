@@ -17,16 +17,6 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  resetLink :{
-    type: String,
-    default:""
-  },
-  verified: {
-    type: Boolean,
-    default:false,
-    required:true,
-
-  },
   aflag: {
     type: Boolean,
   },
