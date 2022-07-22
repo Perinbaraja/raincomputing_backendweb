@@ -17,6 +17,13 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+ 
+  verified: {
+    type: Boolean,
+    default:false,
+    required:true,
+
+  },
   aflag: {
     type: Boolean,
   },
