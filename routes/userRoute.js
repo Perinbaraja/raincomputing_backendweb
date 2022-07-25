@@ -8,7 +8,7 @@ const ActiveSessionModel = require("../models/activeSession");
 const { isAuthenticated } = require("../helpers/safeRoutes");
 const router = express.Router();
 const attorneyModel = require("../models/attorneymodels");
-const { sendMail } = require("../services/mail.services");
+// const { sendMail } = require("../services/mail.services");
 const config = require("../config");
 
 
@@ -57,17 +57,17 @@ router.post("/register", async (req, res) => {
             error: err,
           });
         } else {
-        const verifyToken = await JWTtokenGenerator({ id: user._id,expire:"3d" });
+        // const verifyToken = await JWTtokenGenerator({ id: user._id,expire:"3d" });
 
-          const mailOptions = {
-            to: email,
-            subject: "Account Register Rain Computing",
-            html: '<p>You requested for email verification from Rain Computing, kindly use this <a href="' + config.FE_URL + '/verifyemail?token=' + verifyToken + '">link</a> to verify your email address</p>',
-          };
-           await sendMail(mailOptions);
+        //   const mailOptions = {
+        //     to: email,
+        //     subject: "Account Register Rain Computing",
+        //     html: '<p>You requested for email verification from Rain Computing, kindly use this <a href="' + config.FE_URL + '/verifyemail?token=' + verifyToken + '">link</a> to verify your email address</p>',
+        //   };
+        //    await sendMail(mailOptions);
           return res.json({
             success: true,
-            msg: "Pleasse check your email to verify ",
+            msg: "User Registration Sucessfull ",
             userID: user._id,
           });
         }
@@ -95,11 +95,12 @@ router.post("/login", async (req, res) => {
       });
     
     } 
-    else if(!isUser?.verified){      //For Email Verification
-      return res.json({
-        msg: "This account hasn't been verified yet",
-      });   
-    }else {
+    // else if(!isUser?.verified){      
+    //   return res.json({
+    //     msg: "This account hasn't been verified yet",
+    //   });   
+    // }
+    else {
       const result = await hashValidator(password, isUser.password);
       if (result) {
         console.log(result, "result");
@@ -313,128 +314,128 @@ router.get("/logout", async (req, res) => {
 });
 
 
-router.post("/verifyEmail",async (req,res) =>{
-  const {verifyToken} = req.body;
+// router.post("/verifyEmail",async (req,res) =>{
+//   const {verifyToken} = req.body;
 
-  if (verifyToken) {
-    jwt.verify(verifyToken, config.JWT_SECRET, (err, decodedToken) => {
-      if (err) {
-        return res.json({
-          msg: err?.name || "Invalid token",
-          err
-        });
-      } else {
-        const id = decodedToken?.id;
-         userModel.findByIdAndUpdate(id,{verified:true},async (err,user) =>{
-          if (err) {
-            console.log("Token error :",err)
-            return res.json({
-              msg: "Invalid token",
-              err
-            });
-          }
-         else if (user){
-          return res.json({
-            success:true,
-            user
-          });
-          }
-          else{
-            return res.json({
-              msg: "Invalid user", 
-            });
-          }
-         })
+//   if (verifyToken) {
+//     jwt.verify(verifyToken, config.JWT_SECRET, (err, decodedToken) => {
+//       if (err) {
+//         return res.json({
+//           msg: err?.name || "Invalid token",
+//           err
+//         });
+//       } else {
+//         const id = decodedToken?.id;
+//          userModel.findByIdAndUpdate(id,{verified:true},async (err,user) =>{
+//           if (err) {
+//             console.log("Token error :",err)
+//             return res.json({
+//               msg: "Invalid token",
+//               err
+//             });
+//           }
+//          else if (user){
+//           return res.json({
+//             success:true,
+//             user
+//           });
+//           }
+//           else{
+//             return res.json({
+//               msg: "Invalid user", 
+//             });
+//           }
+//          })
         
-      }
-    });
-  } else {
-    return res.json({
-      msg: "Invalid Registeration",
-    });
-  }
-})
+//       }
+//     });
+//   } else {
+//     return res.json({
+//       msg: "Invalid Registeration",
+//     });
+//   }
+// })
 
-router.post("/forgetPassword",async(req,res)=>{
-  const {email} = req.body;
-  userModel.findOne({ email: email }, async () => {
-    if (!email) {
-      return res.json({
-        msg: "Please provide a Valid email",
-        error: err,
-      });
-    } else if (email?.verified) {
-      return res.json({
-        msg: "This email isn't verified yet",
-      });
-    } else if (email.aflag) {
-      return res.json({
-        msg: "This registered email has been deactivated",
-      });
-    } 
-    else { 
-      const verifyToken = await JWTtokenGenerator({ id: email,expire:"3600s" });
+// router.post("/forgetPassword",async(req,res)=>{
+//   const {email} = req.body;
+//   userModel.findOne({ email: email }, async () => {
+//     if (!email) {
+//       return res.json({
+//         msg: "Please provide a Valid email",
+//         error: err,
+//       });
+//     } else if (email?.verified) {
+//       return res.json({
+//         msg: "This email isn't verified yet",
+//       });
+//     } else if (email.aflag) {
+//       return res.json({
+//         msg: "This registered email has been deactivated",
+//       });
+//     } 
+//     else { 
+//       const verifyToken = await JWTtokenGenerator({ id: email,expire:"3600s" });
 
-      const mailOptions = {
-        to: email,
-        subject: "Forget Password Rain Computing",
-        html: '<p>You requested for Reset Password from Rain Computing, kindly use this <a href="' + config.FE_URL + '/forgot-password?token=' + verifyToken + '">link</a> to reset your password</p>',
-      };
-      const mailResult= await sendMail(mailOptions);
-      console.log("Mail response", mailResult);
-      return res.json({
-        success: true,
-        msg: "Pleasse check your email to Reset Your Password ",
-        email:email
-      });
-    }
-  })
+//       const mailOptions = {
+//         to: email,
+//         subject: "Forget Password Rain Computing",
+//         html: '<p>You requested for Reset Password from Rain Computing, kindly use this <a href="' + config.FE_URL + '/forgot-password?token=' + verifyToken + '">link</a> to reset your password</p>',
+//       };
+//       const mailResult= await sendMail(mailOptions);
+//       console.log("Mail response", mailResult);
+//       return res.json({
+//         success: true,
+//         msg: "Pleasse check your email to Reset Your Password ",
+//         email:email
+//       });
+//     }
+//   })
  
-})
+// })
 
-router.post("/verifyForgetPassword",async (req,res) =>{
-  const {verifyToken,newPassword} = req.body;
+// router.post("/verifyForgetPassword",async (req,res) =>{
+//   const {verifyToken,newPassword} = req.body;
 
-  if (verifyToken) {
-    jwt.verify(verifyToken, config.JWT_SECRET,async (err, decodedToken) => {
-      if (err) {
-        return res.json({
-          msg: err?.name || "Invalid token",
-          err
-        });
-      } else {
-        console.log("decodedToken : ",decodedToken)
-        const id = decodedToken?.id;
-        const hashPassword = await hashGenerator(newPassword);
-         userModel.findOneAndUpdate({email:id,verified:true,aflag:true},{password:hashPassword},async (err,user) =>{
-          if (err) {
-            console.log("Token error :",err)
-            return res.json({
-              msg: "Invalid token",
-              err
-            });
-          }
-         else if (user){
-          return res.json({
-            success:true,
-            id:user._id   
-          });
-          }
-          else{
-            return res.json({
-              msg: "Invalid user", 
-            });
-          }
-         })
+//   if (verifyToken) {
+//     jwt.verify(verifyToken, config.JWT_SECRET,async (err, decodedToken) => {
+//       if (err) {
+//         return res.json({
+//           msg: err?.name || "Invalid token",
+//           err
+//         });
+//       } else {
+//         console.log("decodedToken : ",decodedToken)
+//         const id = decodedToken?.id;
+//         const hashPassword = await hashGenerator(newPassword);
+//          userModel.findOneAndUpdate({email:id,verified:true,aflag:true},{password:hashPassword},async (err,user) =>{
+//           if (err) {
+//             console.log("Token error :",err)
+//             return res.json({
+//               msg: "Invalid token",
+//               err
+//             });
+//           }
+//          else if (user){
+//           return res.json({
+//             success:true,
+//             id:user._id   
+//           });
+//           }
+//           else{
+//             return res.json({
+//               msg: "Invalid user", 
+//             });
+//           }
+//          })
         
-      }
-    });
-  } else {
-    return res.json({
-      msg: "Invalid Action",
-    });
-  }
-})
+//       }
+//     });
+//   } else {
+//     return res.json({
+//       msg: "Invalid Action",
+//     });
+//   }
+// })
 
 
   
