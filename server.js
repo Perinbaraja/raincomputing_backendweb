@@ -116,12 +116,12 @@ const create = async () => {
                             if (err) {
                               console.log("Error in getting user :", err);
                             } else {
-                              const mailOptions = {
-                                to: recivingUser.email,
-                                subject: "New message in chat",
-                                html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-            <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
-                              };
+                              //                   const mailOptions = {
+                              //                     to: recivingUser.email,
+                              //                     subject: "New message in chat",
+                              //                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+                              // <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
+                              //                   };
                               // const mailResult = await sendMail(mailOptions);
                               // console.log("Mail response", mailResult);
                             }
@@ -192,6 +192,7 @@ const create = async () => {
   app.use("/api/pchat", require("./routes/chatRoute"));
   app.use("/api/attorney", require("./routes/attorneyRoute"));
   app.use("/api/firm", require("./routes/firmRoute"));
+  app.use("/api/subgroup", require("./routes/subgroupRoute"));
   // return app;
 
   return server;
