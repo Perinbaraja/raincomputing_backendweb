@@ -14,6 +14,7 @@ const ChatRooms = require("./models/ChatRoomModel");
 const UserModel = require("./models/userModel");
 const { sendMail } = require("./services/mail.services");
 const Attachments = require("./models/AttachmentModel");
+const Message = require("./models/Message");
 
 const io = new Server(server, {
   cors: {
@@ -68,6 +69,49 @@ const create = async () => {
 
     // USER IS ONLINE BROAD CAST TO ALL CONNECTED USERS
     io.sockets.emit("online", users);
+
+    socket.on("s_m", async (payload) => {
+      try {
+        let attachmentsObjId = [];
+        const { isAttachment, attachments, receivers, sender } = payload;
+        // console.log("Message Payload", payload);
+        if (isAttachment) {
+          attachmentsObjId.push("100");
+        }
+        const finalPayload = { ...payload, attachments: attachmentsObjId };
+        const createdMessage = await Message.create(finalPayload);
+        if (createdMessage) {
+          socket.emit("s_s", createdMessage);
+          await receivers.map((receiver) => {
+            if (!(receiver in users)) {
+              // console.log("Reciver is offline  : ", receiver);
+              // UserModel.findById(
+              //   receiver,
+              //   async (err, recivingUser) => {
+              //     if (err) {
+              //       console.log("Error in getting user :", err);
+              //     } else {
+              //       //                   const mailOptions = {
+              //       //                     to: recivingUser.email,
+              //       //                     subject: "New message in chat",
+              //       //                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+              //       // <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
+              //       //                   };
+              //       // const mailResult = await sendMail(mailOptions);
+              //       // console.log("Mail response", mailResult);
+              //     }
+              //   }
+              // );
+            } else {
+              console.log("Reciver is online  : ", receiver);
+              socket.broadcast.to(receiver).emit("r_m", createdMessage);
+            }
+          });
+        }
+      } catch (error) {
+        console.log("error while emit msg :", error);
+      }
+    });
 
     socket.on(
       "send_message",
@@ -193,6 +237,9 @@ const create = async () => {
   app.use("/api/attorney", require("./routes/attorneyRoute"));
   app.use("/api/firm", require("./routes/firmRoute"));
   app.use("/api/subgroup", require("./routes/subgroupRoute"));
+  app.use("/api/case", require("./routes/caseRoute"));
+  app.use("/api/group", require("./routes/groupRoute"));
+  app.use("/api/message", require("./routes/messageRoute"));
   // return app;
 
   return server;

@@ -7,6 +7,7 @@ const config = {
   MAIL_PASSWORD: "qpomthjiesygydjn",
   RESET_PASSWORD: "dev123",
   FE_URL: "http://localhost:3000",
+  DEFAULT_RES_ERROR: "Something wrong occured",
 };
 
 module.exports = config;
