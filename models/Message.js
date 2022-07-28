@@ -21,14 +21,12 @@ const messageSchema = mongoose.Schema(
     ],
     messageData: {
       type: String,
-      required: true,
-      default: "This is Attachment",
     },
     isAttachment: {
       type: Boolean,
       default: false,
     },
-    attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Attachments" }],
+    attachments: [],
     aflag: {
       type: Boolean,
       default: true,

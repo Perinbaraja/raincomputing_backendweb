@@ -12,18 +12,16 @@ const SENDMESSAGE = async (req, res) => {
       isAttachment,
       attachments,
     } = req.body;
-    let messageQuery = {
+    const messageQuery = {
       groupId,
       sender,
       receivers,
       messageData,
+      isAttachment,
+      attachments,
     };
     if (caseId) {
       messageQuery.caseId = caseId;
-    }
-    if (isAttachment) {
-      (messageQuery.isAttachment = true),
-        (messageQuery.attachments = attachments);
     }
     const createdMessage = await Message.create(messageQuery);
     if (createdMessage) return res.json({ success: true, createdMessage });

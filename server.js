@@ -1,5 +1,9 @@
 const express = require("express");
 const _ = require("lodash");
+const multer = require("multer");
+const crypto = require("crypto");
+const path = require("path");
+const { GridFsStorage } = require("multer-gridfs-storage");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -72,14 +76,8 @@ const create = async () => {
 
     socket.on("s_m", async (payload) => {
       try {
-        let attachmentsObjId = [];
-        const { isAttachment, attachments, receivers, sender } = payload;
-        // console.log("Message Payload", payload);
-        if (isAttachment) {
-          attachmentsObjId.push("100");
-        }
-        const finalPayload = { ...payload, attachments: attachmentsObjId };
-        const createdMessage = await Message.create(finalPayload);
+        const { receivers } = payload;
+        const createdMessage = await Message.create(payload);
         if (createdMessage) {
           socket.emit("s_s", createdMessage);
           await receivers.map((receiver) => {
@@ -121,7 +119,7 @@ const create = async () => {
         receivers,
         messageData,
         createdAt,
-        isAttachment = false,
+        isAttachment,
         attachments,
       }) => {
         let attachmentsObjId = [];
@@ -224,6 +222,85 @@ const create = async () => {
 
       socket.disconnect(); // DISCONNECT SOCKET
       console.log("user disconnected", reason);
+    });
+  });
+
+  //Attachment uploading
+  let gfs;
+  mongoose.connection.on("connected", () => {
+    const db = mongoose.connections[0].db;
+    gfs = new mongoose.mongo.GridFSBucket(db, {
+      bucketName: "attachments",
+    });
+  });
+  //Declaring GridFS storage
+  const storage = new GridFsStorage({
+    url: config.MONGO_URL,
+    options: { useUnifiedTopology: true },
+    file: (req, file) => {
+      return new Promise((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+          if (err) {
+            console.log("Final Step err:", err);
+            return reject(err);
+          }
+          const filename =
+            buf.toString("hex") + path.extname(file.originalname);
+          const fileInfo = {
+            filename: filename,
+            bucketName: "attachments",
+          };
+          console.log("Final Step fileInfo:", fileInfo);
+          resolve(fileInfo);
+        });
+      });
+    },
+  });
+
+  const store = multer({
+    storage,
+    fileFilter: function (req, file, cb) {
+      checkFileType(file, cb);
+    },
+  });
+  //Checking file types
+  function checkFileType(file, cb) {
+    const filetypes = /jpeg|jpg|png|pdf/;
+    const extname = filetypes.test(
+      path.extname(file.originalname).toLocaleLowerCase()
+    );
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) return cb(null, true);
+    cb("filetype");
+  }
+  //Attachment middleware
+  const uploadMiddleware = (req, res, next) => {
+    const upload = store.array("file");
+    upload(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).send("file to large");
+      } else if (err) {
+        console.log("m error: ", err);
+        if (err === "filetype") return res.status(400).send("file type error");
+        return res.send("file upload error");
+      }
+      next();
+    });
+  };
+  //atatchment upload
+  app.post("/upload", uploadMiddleware, async (req, res) => {
+    const { files } = req;
+    return res.json({ success: true, files });
+  });
+
+  app.get("/file/:id", ({ params: { id } }, res) => {
+    if (!id || id === "undefined") return res.status(400).send("no image id");
+    const _id = new mongoose.Types.ObjectId(id);
+    gfs.find({ _id }).toArray((err, files) => {
+      if (!files || files.length === 0)
+        return res.status(400).send("no files exist");
+      // if a file exists, send the data
+      gfs.openDownloadStream(_id).pipe(res);
     });
   });
 
