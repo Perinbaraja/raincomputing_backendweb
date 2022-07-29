@@ -8,4 +8,8 @@ router.post("/createGroup", groupController.CREATE_GROUP);
 
 router.post("/getByUserandCaseId", groupController.GETBYCASEID_USERID);
 
+router.post("/createChat", groupController.CREATE_ONE_ON_ONE_CHAT);
+
+router.post("/getChat", groupController.GET_ONE_ON_ONE_CHAT);
+
 module.exports = router;

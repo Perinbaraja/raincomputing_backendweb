@@ -82,7 +82,7 @@ const create = async () => {
           socket.emit("s_s", createdMessage);
           await receivers.map((receiver) => {
             if (!(receiver in users)) {
-              // console.log("Reciver is offline  : ", receiver);
+              console.log("Reciver is offline  : ", receiver);
               // UserModel.findById(
               //   receiver,
               //   async (err, recivingUser) => {
