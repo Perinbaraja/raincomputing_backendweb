@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'rainapi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A2506DEAFE9A4875BAD71F9C71F6DCFE }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A8984888FA42439FAC4C2FAAEA3D691F }}
           package: .
