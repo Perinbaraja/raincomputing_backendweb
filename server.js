@@ -83,23 +83,20 @@ const create = async () => {
           await receivers.map((receiver) => {
             if (!(receiver in users)) {
               console.log("Reciver is offline  : ", receiver);
-              // UserModel.findById(
-              //   receiver,
-              //   async (err, recivingUser) => {
-              //     if (err) {
-              //       console.log("Error in getting user :", err);
-              //     } else {
-              //       //                   const mailOptions = {
-              //       //                     to: recivingUser.email,
-              //       //                     subject: "New message in chat",
-              //       //                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-              //       // <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
-              //       //                   };
-              //       // const mailResult = await sendMail(mailOptions);
-              //       // console.log("Mail response", mailResult);
-              //     }
-              //   }
-              // );
+              UserModel.findById(receiver, async (err, recivingUser) => {
+                if (err) {
+                  console.log("Error in getting user :", err);
+                } else {
+                  const mailOptions = {
+                    to: recivingUser.email,
+                    subject: "New message in chat",
+                    html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+                    <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
+                  };
+                  const mailResult = await sendMail(mailOptions);
+                  console.log("Mail response", mailResult);
+                }
+              });
             } else {
               console.log("Reciver is online  : ", receiver);
               socket.broadcast.to(receiver).emit("r_m", createdMessage);
@@ -158,14 +155,14 @@ const create = async () => {
                             if (err) {
                               console.log("Error in getting user :", err);
                             } else {
-                              //                   const mailOptions = {
-                              //                     to: recivingUser.email,
-                              //                     subject: "New message in chat",
-                              //                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-                              // <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
-                              //                   };
-                              // const mailResult = await sendMail(mailOptions);
-                              // console.log("Mail response", mailResult);
+                              const mailOptions = {
+                                to: recivingUser.email,
+                                subject: "New message in chat",
+                                html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+                              <a href="http://raincomputing1.azurewebsites.net/rc-chat">View Message</a></div>`,
+                              };
+                              const mailResult = await sendMail(mailOptions);
+                              console.log("Mail response", mailResult);
                             }
                           }
                         );
