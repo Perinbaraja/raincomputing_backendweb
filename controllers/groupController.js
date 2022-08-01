@@ -89,13 +89,17 @@ const GETBYCASEID_USERID = async (req, res) => {
       },
       null,
       {
-        sort: { isParent: -1, updatedAt: -1 },
+        sort: {
+          // isParent: -1,
+          updatedAt: -1,
+        },
       }
     );
     if (groups && groups.length > 0)
       return res.json({ success: true, groups: groups });
     else return res.json({ msg: "No groups Found" });
   } catch (err) {
+    console.log("group error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };

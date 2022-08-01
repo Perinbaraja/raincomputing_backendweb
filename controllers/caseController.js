@@ -53,11 +53,11 @@ const GETBYUSERID = async (req, res) => {
       { path: "caseMembers.id", select: "firstname lastname" },
       { path: "caseMembers.addedBy", select: "firstname lastname" },
     ]);
+
     if (userCases && userCases.length > 0)
       return res.json({ success: true, cases: userCases });
     else return res.json({ msg: "No cases Found" });
   } catch (err) {
-    console.log("case error: ", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
