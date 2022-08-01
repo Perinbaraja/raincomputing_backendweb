@@ -7,7 +7,7 @@ const config = {
   SENDER_MAIL: "rpmongotest@gmail.com",
   MAIL_PASSWORD: "qpomthjiesygydjn",
   RESET_PASSWORD: "dev123",
-  FE_URL: "http://localhost:3000",
+  FE_URL: "https://raincomputing1.azurewebsites.net",
   DEFAULT_RES_ERROR: "Something wrong occured",
 };
 
