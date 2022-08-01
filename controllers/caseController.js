@@ -57,6 +57,7 @@ const GETBYUSERID = async (req, res) => {
       return res.json({ success: true, cases: userCases });
     else return res.json({ msg: "No cases Found" });
   } catch (err) {
+    console.log("case error: ", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
