@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema({
+const adminSchema = mongoose.Schema({
+
   firstname: {
     type: String,
     required: true,
@@ -9,7 +10,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  email: {
+  username: {
     type: String,
     required: true,
   },
@@ -17,19 +18,6 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-
-  verified: {
-    type: Boolean,
-    default: false,
-    required: true,
-  },
-
-  profilePic: {
-    type: String,
-  },
-
-  isProfilePic: { type: Boolean, default: true },
-
   aflag: {
     type: Boolean,
   },
@@ -37,12 +25,9 @@ const userSchema = mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  attorneyStatus: {
-    type: String,
-  },
   lastModified: {
     type: Date,
     default: Date.now(),
   },
 });
-module.exports = mongoose.model("UserModel", userSchema);
+module.exports = mongoose.model("AdminModel", adminSchema);

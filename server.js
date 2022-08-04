@@ -314,6 +314,7 @@ const create = async () => {
   app.use("/api/case", require("./routes/caseRoute"));
   app.use("/api/group", require("./routes/groupRoute"));
   app.use("/api/message", require("./routes/messageRoute"));
+  app.use("/api/admin", require("./routes/adminRoute"));
   // return app;
 
   return server;

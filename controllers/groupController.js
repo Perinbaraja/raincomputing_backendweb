@@ -29,7 +29,7 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
     const isChat = await Group.findOne({
       isGroup: false,
       admins: sortedmembers,
-    }).populate("groupMembers.id", "firstname lastname email");
+    }).populate("groupMembers.id", "firstname lastname email profilePic");
     if (isChat) return res.json({ success: true, group: isChat });
     const struturedMembers = sortedmembers.map((m) => ({ id: m }));
     const chatQuery = {
@@ -40,7 +40,7 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
     if (createdChat) {
       const newChat = await Group.findById(createdChat._id).populate(
         "groupMembers.id",
-        "firstname lastname email"
+        "firstname lastname email profilePic"
       );
       console.log("new chat id:", newChat);
       return res.json({ success: true, group: newChat });
@@ -66,7 +66,7 @@ const GET_ONE_ON_ONE_CHAT = async (req, res) => {
       },
       null,
       { sort: { updatedAt: -1 } }
-    ).populate("groupMembers.id", "firstname lastname email");
+    ).populate("groupMembers.id", "firstname lastname email profilePic");
     if (chats) return res.json({ success: true, groups: chats });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
