@@ -94,7 +94,7 @@ const GETBYCASEID_USERID = async (req, res) => {
           updatedAt: -1,
         },
       }
-    );
+    ).populate("groupMembers.id", "firstname lastname email");
     if (groups && groups.length > 0)
       return res.json({ success: true, groups: groups });
     else return res.json({ msg: "No groups Found" });
