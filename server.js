@@ -275,8 +275,12 @@ const create = async () => {
   app.use("/api/pchat", require("./routes/chatRoute"));
   app.use("/api/attorney", require("./routes/attorneyRoute"));
   app.use("/api/firm", require("./routes/firmRoute"));
-  // return app;
 
+
+  //Admin Configuration
+  app.use("/api/admin", require("./routes/adminRoute"));
+
+  // return app;
   return server;
 };
 
