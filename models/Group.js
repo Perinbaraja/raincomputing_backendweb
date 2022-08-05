@@ -53,6 +53,10 @@ const groupSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    color: {
+      type: String,
+      default: "#0000FF",
+    },
   },
   { timestamps: true }
 );

@@ -3,7 +3,7 @@ const Group = require("../models/Group");
 
 const CREATE_GROUP = async (req, res) => {
   try {
-    const { caseId, groupName, members, admin } = req.body;
+    const { caseId, groupName, members, admin, color } = req.body;
     const isGroupExisting = await Group.findOne({ caseId, groupName });
     if (isGroupExisting) return res.json({ msg: "Group already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
@@ -14,6 +14,7 @@ const CREATE_GROUP = async (req, res) => {
       isParent: false,
       isGroup: true,
       admins: [admin],
+      color: color,
     };
     const createdGroup = await Group.create(groupQuery);
     if (createdGroup) return res.json({ success: true, group: createdGroup });
@@ -42,7 +43,6 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
         "groupMembers.id",
         "firstname lastname email profilePic"
       );
-      console.log("new chat id:", newChat);
       return res.json({ success: true, group: newChat });
     }
   } catch (err) {
@@ -104,9 +104,35 @@ const GETBYCASEID_USERID = async (req, res) => {
   }
 };
 
+const UPDATE_GROUP = async (req, res) => {
+  try {
+    const { groupId, groupName, members, admin, color, deleteIt } = req.body;
+    if (deleteIt) {
+      const deletedGroup = await Group.findByIdAndUpdate(groupId, {
+        aflag: false,
+      });
+      if (deletedGroup)
+        return res.json({ success: true, groupName: deletedGroup?.groupName });
+    } else {
+      const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+      const updateQuery = {
+        groupName,
+        groupMembers: struturedMembers,
+        color,
+      };
+      const updatedGroup = await Group.findByIdAndUpdate(groupId, updateQuery);
+      if (updatedGroup) return res.json({ success: true, groupName });
+    }
+  } catch (err) {
+    console.log("group update error", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
 module.exports.groupController = {
   CREATE_GROUP,
   GETBYCASEID_USERID,
   CREATE_ONE_ON_ONE_CHAT,
   GET_ONE_ON_ONE_CHAT,
+  UPDATE_GROUP,
 };

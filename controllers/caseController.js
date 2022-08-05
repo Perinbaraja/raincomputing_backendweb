@@ -50,7 +50,7 @@ const GETBYUSERID = async (req, res) => {
       },
       aflag: true,
     }).populate([
-      { path: "caseMembers.id", select: "firstname lastname" },
+      { path: "caseMembers.id", select: "firstname lastname profilePic" },
       { path: "caseMembers.addedBy", select: "firstname lastname" },
     ]);
 
