@@ -62,7 +62,35 @@ const GETBYUSERID = async (req, res) => {
   }
 };
 
+const UPDATE_CASE = async (req, res) => {
+  try {
+    const { id, caseId, caseName, members, admin, deleteIt } = req.body;
+    if (deleteIt) {
+      const deletedCase = await Case.findByIdAndUpdate(id, {
+        aflag: false,
+      });
+      if (deletedCase)
+        return res.json({ success: true, caseId: deletedCase?.caseId });
+    } else {
+      const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+      const updateQuery = {
+        caseName,
+        caseId,
+        caseMembers: struturedMembers,
+        notifyMembers: members,
+        admins: [admin],
+      };
+      const updatedGroup = await Case.findByIdAndUpdate(id, updateQuery);
+      if (updatedGroup) return res.json({ success: true, caseName });
+    }
+  } catch (err) {
+    console.log("Case update error", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
 module.exports.caseController = {
   CREATE,
   GETBYUSERID,
+  UPDATE_CASE,
 };
