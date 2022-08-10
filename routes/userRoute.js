@@ -287,12 +287,22 @@ router.post("/attorneydetails", async (req, res) => {
 });
 
 router.post("/allUser", async (req, res) => {
-  const { userID } = req.body;
+  const { userID, searchText = "", limit = 10, page = 1 } = req.body;
+  const skip = (page - 1) * limit;
   userModel.find(
-    { _id: { $ne: userID } },
+    {
+      $or: [
+        { firstname: { $regex: "^" + searchText, $options: "i" } },
+        { lastname: { $regex: "^" + searchText, $options: "i" } },
+        { email: { $regex: "^" + searchText, $options: "i" } },
+      ],
+      _id: { $ne: userID },
+    },
     null,
     {
       sort: { firstname: 1 },
+      limit: limit,
+      skip: skip,
     },
     (err, list) => {
       if (err) {

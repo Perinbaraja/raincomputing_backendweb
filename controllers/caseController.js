@@ -50,7 +50,7 @@ const GETBYUSERID = async (req, res) => {
       },
       aflag: true,
     }).populate([
-      { path: "caseMembers.id", select: "firstname lastname profilePic" },
+      { path: "caseMembers.id", select: "firstname lastname profilePic email" },
       { path: "caseMembers.addedBy", select: "firstname lastname" },
     ]);
 
@@ -80,8 +80,23 @@ const UPDATE_CASE = async (req, res) => {
         notifyMembers: members,
         admins: [admin],
       };
-      const updatedGroup = await Case.findByIdAndUpdate(id, updateQuery);
-      if (updatedGroup) return res.json({ success: true, caseName });
+      const updatedCase = await Case.findByIdAndUpdate(id, updateQuery);
+      if (updatedCase) {
+        const everyoneGroup = await Group.findOne({
+          caseId: id,
+          isParent: true,
+        });
+        if (everyoneGroup) {
+          const updateQueryForGroup = {
+            groupMembers: struturedMembers,
+          };
+          await Group.findByIdAndUpdate(
+            everyoneGroup?._id,
+            updateQueryForGroup
+          );
+        }
+        return res.json({ success: true, caseName });
+      }
     }
   } catch (err) {
     console.log("Case update error", err);
