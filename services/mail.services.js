@@ -29,7 +29,7 @@ const sendMail = async (mailOptions) => {
     //   }
     // });
 
-    cron.schedule("00 22 * * *", function () {
+    cron.schedule("30 22 * * *", function () {
       console.log("---------------------");
       console.log("Running Cron Process");
       // Delivering mail with sendMail method
