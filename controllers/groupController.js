@@ -4,7 +4,11 @@ const Group = require("../models/Group");
 const CREATE_GROUP = async (req, res) => {
   try {
     const { caseId, groupName, members, admin, color } = req.body;
-    const isGroupExisting = await Group.findOne({ caseId, groupName });
+    const isGroupExisting = await Group.findOne({
+      caseId,
+      groupName,
+      aflag: true,
+    });
     if (isGroupExisting) return res.json({ msg: "Group already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
     const groupQuery = {
@@ -90,7 +94,7 @@ const GETBYCASEID_USERID = async (req, res) => {
       null,
       {
         sort: {
-          // isParent: -1,
+          isParent: -1,
           updatedAt: -1,
         },
       }
