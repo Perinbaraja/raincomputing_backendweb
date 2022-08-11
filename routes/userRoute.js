@@ -57,25 +57,25 @@ router.post("/register", async (req, res) => {
             error: err,
           });
         } else {
-          const verifyToken = await JWTtokenGenerator({
-            id: user._id,
-            expire: "3d",
-          });
+          // const verifyToken = await JWTtokenGenerator({
+          //   id: user._id,
+          //   expire: "3d",
+          // });
 
-          const mailOptions = {
-            to: email,
-            subject: "Account Register Rain Computing",
-            html:
-              '<p>You requested for email verification from Rain Computing, kindly use this <a href="' +
-              config.FE_URL +
-              "/verifyemail?token=" +
-              verifyToken +
-              '">link</a> to verify your email address</p>',
-          };
-          await sendMail(mailOptions);
+          // const mailOptions = {
+          //   to: email,
+          //   subject: "Account Register Rain Computing",
+          //   html:
+          //     '<p>You requested for email verification from Rain Computing, kindly use this <a href="' +
+          //     config.FE_URL +
+          //     "/verifyemail?token=" +
+          //     verifyToken +
+          //     '">link</a> to verify your email address</p>',
+          // };
+          // await sendMail(mailOptions);
           return res.json({
             success: true,
-            msg: "Pleasse check your email to verify ",
+            msg: "User registration successful ",
             userID: user._id,
           });
         }
