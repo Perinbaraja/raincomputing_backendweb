@@ -104,7 +104,7 @@ const UPDATE_CASE = async (req, res) => {
             updateQueryForGroup
           );
         }
-        return res.json({ success: true, caseName });
+        return res.json({ success: true, caseId });
       }
     }
   } catch (err) {

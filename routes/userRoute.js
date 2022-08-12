@@ -261,6 +261,7 @@ router.put("/edit", async (req, res) => {
             lastname: isUser.lastname,
             email: isUser.email,
             attorneyStatus: isUser.attorneyStatus,
+            profilePic: isUser.profilePic,
           });
         }
       });
@@ -494,7 +495,10 @@ router.put("/profilePicUpdate", async (req, res) => {
           return res.json({
             success: true,
             userID: isUser._id,
+            firstname: isUser.firstname,
+            lastname: isUser.lastname,
             email: isUser.email,
+            attorneyStatus: isUser.attorneyStatus,
             profilePic: isUser.profilePic,
           });
         }
