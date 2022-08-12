@@ -15,7 +15,7 @@ router.get("/", (req, res) => res.send("User Route"));
 
 router.post("/register", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
-  // console.log(req.body, "req.body");
+
   if (!password) {
     return res.json({
       msg: "Password Empty",
