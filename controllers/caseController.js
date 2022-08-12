@@ -40,16 +40,25 @@ const CREATE = async (req, res) => {
 
 const GETBYUSERID = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const userCases = await Case.find({
-      caseMembers: {
-        $elemMatch: {
-          id: userId,
-          isActive: true,
+    const { userId, page = 1, limit = 10, searchText = "" } = req.body;
+    const skip = (page - 1) * limit;
+    const userCases = await Case.find(
+      {
+        $or: [
+          { caseName: { $regex: "^" + searchText, $options: "i" } },
+          { caseId: { $regex: "^" + searchText, $options: "i" } },
+        ],
+        caseMembers: {
+          $elemMatch: {
+            id: userId,
+            isActive: true,
+          },
         },
+        aflag: true,
       },
-      aflag: true,
-    }).populate([
+      null,
+      { limit: limit, skip: skip }
+    ).populate([
       { path: "caseMembers.id", select: "firstname lastname profilePic email" },
       { path: "caseMembers.addedBy", select: "firstname lastname" },
     ]);

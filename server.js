@@ -58,7 +58,7 @@ const create = async () => {
 
   //Users object to save online users
   let users = {};
-
+  let notifications = [];
   //Socket methods
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.id;
@@ -74,15 +74,29 @@ const create = async () => {
     // USER IS ONLINE BROAD CAST TO ALL CONNECTED USERS
     io.sockets.emit("online", users);
 
+    //Sending notification while user log in
+    if (notifications.some((n) => n?.receivers?.includes(userId))) {
+      const createdMessage = notifications.filter((n) =>
+        n?.receivers?.includes(userId)
+      );
+      // console.log("send to reciver", createdMessage.length);
+      socket.emit("u_l", createdMessage);
+      notifications = notifications.filter(
+        (n) => !n?.receivers?.includes(userId)
+      );
+    }
+
     socket.on("s_m", async (payload) => {
       try {
         const { receivers } = payload;
+
         const createdMessage = await Message.create(payload);
         if (createdMessage) {
           socket.emit("s_s", createdMessage);
           await receivers.map((receiver) => {
             if (!(receiver in users)) {
               console.log("Reciver is offline  : ", receiver);
+              notifications.push(createdMessage);
               UserModel.findById(receiver, async (err, recivingUser) => {
                 if (err) {
                   console.log("Error in getting user :", err);
