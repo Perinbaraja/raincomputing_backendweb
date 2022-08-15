@@ -79,7 +79,6 @@ const create = async () => {
       const createdMessage = notifications.filter((n) =>
         n?.receivers?.includes(userId)
       );
-      // console.log("send to reciver", createdMessage.length);
       socket.emit("u_l", createdMessage);
       notifications = notifications.filter(
         (n) => !n?.receivers?.includes(userId)
