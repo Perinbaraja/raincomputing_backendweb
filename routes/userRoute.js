@@ -141,6 +141,7 @@ router.post("/login", async (req, res) => {
           email: isUser.email,
           token: "JWT " + jwtToken,
           attorneyStatus: isUser.attorneyStatus,
+          appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
         });
         //   }
@@ -262,6 +263,7 @@ router.put("/edit", async (req, res) => {
             email: isUser.email,
             attorneyStatus: isUser.attorneyStatus,
             profilePic: isUser.profilePic,
+            appointmentStatus: isUser.appointmentStatus,
           });
         }
       });
@@ -499,6 +501,7 @@ router.put("/profilePicUpdate", async (req, res) => {
             lastname: isUser.lastname,
             email: isUser.email,
             attorneyStatus: isUser.attorneyStatus,
+            appointmentStatus: isUser.appointmentStatus,
             profilePic: isUser.profilePic,
           });
         }

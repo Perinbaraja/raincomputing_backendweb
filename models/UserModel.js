@@ -40,6 +40,9 @@ const userSchema = mongoose.Schema({
   attorneyStatus: {
     type: String,
   },
+  appointmentStatus: {
+    type: String,
+  },
   lastModified: {
     type: Date,
     default: Date.now(),
