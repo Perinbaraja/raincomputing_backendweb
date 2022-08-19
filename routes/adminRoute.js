@@ -270,4 +270,30 @@ router.get("/allReqAttorneyList", async (req, res) => {
     });
 });
 
+router.post("/getUserById" , async (req,res) => {
+  try{
+    const { userId } = req.body;
+    userModel.findById(userId , async (err,User) => {
+      if (err){
+        return res.json({
+          msg:err,
+        });
+      }else if (User){
+        return res.json({
+          success : true,
+          User,
+        });
+      }else{
+        return res.json ({
+          msg : `No User Found With Id ${userId}`,
+        });
+      }
+    });
+  }catch (err) {
+    return res.json({
+      msg: err,
+    });
+  }
+});
+
 module.exports = router;
