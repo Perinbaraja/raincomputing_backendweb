@@ -69,8 +69,8 @@ const GETFILES = async (req, res) => {
         const senderId = f?.sender?._id;
         const time = f?.createdAt;
         f?.attachments?.map((a) => {
-          const typeIndex = a?.type.indexOf("/");
-          const type = a?.type.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
+          const typeIndex = a?.name.indexOf(".");
+          const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
           const size = a?.size;
           const id = a?.id;
           const name = a?.name;

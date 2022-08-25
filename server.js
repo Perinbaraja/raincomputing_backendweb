@@ -275,7 +275,7 @@ const create = async () => {
   });
   //Checking file types
   function checkFileType(file, cb) {
-    const filetypes = /jpeg|jpg|png|pdf/;
+    const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf/;
     const extname = filetypes.test(
       path.extname(file.originalname).toLocaleLowerCase()
     );
@@ -330,6 +330,7 @@ const create = async () => {
   app.use("/api/admin", require("./routes/adminRoute"));
   app.use("/api/bff", require("./routes/bffRoute"));
   app.use("/api/appointment", require("./routes/appointmentRoute"));
+  app.use("/api/payment", require("./routes/paymentRoute"));
   // return app;
 
   return server;

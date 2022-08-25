@@ -26,7 +26,7 @@ const appointmentSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    status: {
+    appointmentstatus: {
       type: String,
     },
   },

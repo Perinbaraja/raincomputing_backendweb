@@ -8,14 +8,14 @@ router.get("/", (req, res) => res.send(" Attorney Route"));
 
 router.post("/appointmentrequest", async (req, res) => {
   try {
-    const { User, attorney, caseData, status } = req.body;
+    const { User, attorney, caseData, appointmentstatus } = req.body;
     const user = await UserModel.findOne({ _id: User, aflag: true });
     if (user) {
       const appointmentReqQuery = {
         User: user,
         attorney: attorney,
         caseData,
-        status,
+        appointmentstatus,
       };
       const isAlreadyReqAppointment = await AppointmentModel.find({
         attorney,
@@ -33,7 +33,7 @@ router.post("/appointmentrequest", async (req, res) => {
         if (appointmentRequest) {
           console.log("object", appointmentRequest);
           const updatedUser = await UserModel.findByIdAndUpdate(User, {
-            appointmentStatus: status,
+            appointmentStatus: appointmentstatus,
 
             lastModified: Date.now(),
           });
@@ -45,7 +45,7 @@ router.post("/appointmentrequest", async (req, res) => {
               firstname: updatedUser.firstname,
               lastname: updatedUser.lastname,
               email: updatedUser.email,
-              appointmentStatus: status,
+              appointmentStatus: appointmentstatus,
             });
           } else {
             return res.json({
@@ -69,7 +69,7 @@ router.post("/appointmentrequest", async (req, res) => {
 router.post("/getAllAppointmentRequestByUserId", async (req, res) => {
   try {
     const { userID } = req.body;
-    AppointmentModel.find({ attorney: userID, status: "request" })
+    AppointmentModel.find({ attorney: userID, appointmentstatus: "request" })
       .populate({
         path: "User",
         select: "firstname lastname email casedata attachments status attorney",
@@ -93,11 +93,11 @@ router.post("/getAllAppointmentRequestByUserId", async (req, res) => {
 
 router.put("/appointmentStatus", async (req, res) => {
   try {
-    const { appointmentID, status } = req.body;
+    const { appointmentID, appointmentstatus } = req.body;
     const updatedApponitment = await AppointmentModel.findByIdAndUpdate(
       appointmentID,
       {
-        status: status,
+        appointmentstatus: appointmentstatus,
         lastModified: Date.now(),
       }
     );
