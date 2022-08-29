@@ -87,7 +87,7 @@ const UPDATE_CASE = async (req, res) => {
         caseId,
         caseMembers: struturedMembers,
         notifyMembers: members,
-        admins: [admin],
+        // admins: [admin],
       };
       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery);
       if (updatedCase) {
@@ -113,8 +113,23 @@ const UPDATE_CASE = async (req, res) => {
   }
 };
 
+const ADD_ADMIN = async (req, res) => {
+  try {
+    const { admin, caseId } = req.body;
+    const updatedCase = await Case.findByIdAndUpdate(caseId, {
+      $push: { admins: admin },
+    });
+    if (updatedCase) {
+      return res.json({ success: true, updatedCase });
+    }
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
 module.exports.caseController = {
   CREATE,
   GETBYUSERID,
   UPDATE_CASE,
+  ADD_ADMIN,
 };
