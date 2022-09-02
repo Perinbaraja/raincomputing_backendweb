@@ -8,13 +8,16 @@ router.get("/", (req, res) => res.send(" Attorney Route"));
 
 router.post("/appointmentrequest", async (req, res) => {
   try {
-    const { User, attorney, caseData, appointmentstatus } = req.body;
+    const { User, attorney, caseData, isAttachments,
+      attachments,appointmentstatus } = req.body;
     const user = await UserModel.findOne({ _id: User, aflag: true });
     if (user) {
       const appointmentReqQuery = {
         User: user,
         attorney: attorney,
         caseData,
+        isAttachments,
+        attachments,
         appointmentstatus,
       };
       const isAlreadyReqAppointment = await AppointmentModel.find({
@@ -31,14 +34,12 @@ router.post("/appointmentrequest", async (req, res) => {
         );
 
         if (appointmentRequest) {
-          console.log("object", appointmentRequest);
           const updatedUser = await UserModel.findByIdAndUpdate(User, {
             appointmentStatus: appointmentstatus,
 
             lastModified: Date.now(),
           });
           if (updatedUser) {
-            console.log("update", updatedUser);
             return res.json({
               success: true,
               userID: updatedUser._id,
@@ -46,6 +47,7 @@ router.post("/appointmentrequest", async (req, res) => {
               lastname: updatedUser.lastname,
               email: updatedUser.email,
               appointmentStatus: appointmentstatus,
+              profilePic: updatedUser.profilePic,
             });
           } else {
             return res.json({
@@ -115,4 +117,30 @@ router.put("/appointmentStatus", async (req, res) => {
     });
   }
 });
+
+router.post("/getAppointmentStatusById", async (req,res) => {
+  try{
+  const {userID} = req.body;
+  AppointmentModel.find({User : userID })
+  .populate({
+    path : "attorney",
+    populate : {path : "regUser" ,select: "firstname lastname profilePic "},
+  })
+  .exec((err, list) => {
+    if (err){
+      return res.json({
+        msg : err,
+      });
+    }else {
+      return res.json ({
+        success : true,
+        list, 
+      });
+    }
+  })
+}catch (err) {
+  return res.json({ msg: "error" });
+}
+})
+
 module.exports = router;

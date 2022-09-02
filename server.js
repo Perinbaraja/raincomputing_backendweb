@@ -275,7 +275,7 @@ const create = async () => {
   });
   //Checking file types
   function checkFileType(file, cb) {
-    const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf/;
+    const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf|zip/;
     const extname = filetypes.test(
       path.extname(file.originalname).toLocaleLowerCase()
     );

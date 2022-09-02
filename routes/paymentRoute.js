@@ -1,5 +1,6 @@
 const express = require("express");
 const { identity } = require("lodash");
+const PaymentModel = require("../models/PaymentModel");
 const router = express.Router();
 const stripe = require("stripe")(
   "sk_test_51LYOZnSED7zxlOa8JJRGqPgogYBn0hw5geNTfpbNBlxT6JXyyUtU14QyB2qv1EZAwvC0Fw3NjugyNkk3zINBj2xh00pqSKN7nc"
@@ -15,7 +16,9 @@ const calculateOrderAmount = (items) => {
 router.get("/", (req, res) => res.send(" Payment Route"));
 
 router.post("/create-payment-intent", async (req, res) => {
-  const { items } = req.body;
+  const { items, email, user, attorney } = req.body;
+  console.log("currentUser", user);
+
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: calculateOrderAmount(items),
@@ -23,15 +26,48 @@ router.post("/create-payment-intent", async (req, res) => {
     automatic_payment_methods: {
       enabled: true,
     },
-    customer:'cus_MIciUgEizHmKkS',
+    customer: "cus_MIciUgEizHmKkS",
     metadata: {
-        order_id: '6735',
-      },
-      description:"Paying in USD"
+      email: email,
+      user: user,
+      attorney: attorney,
+    },
+    description: "Paying in USD",
   });
   res.send({
     clientSecret: paymentIntent.client_secret,
   });
+});
+
+router.post("/getPaymentId", async (req, res) => {
+  try {
+    const { pi } = req.body;
+    const isPaymentExist = await PaymentModel.findOne({ transactionId: pi });
+    if (isPaymentExist) {
+      return res.json({ success: true, isPaymentExist });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(pi);
+    // console.log("paymentIntent:", paymentIntent);
+    if (paymentIntent) {
+      const { metadata, status, amount } = paymentIntent;
+      const paymentQuery = {
+        consumerId: metadata?.user,
+        attorneyId: metadata?.attorney,
+        payAmount: amount / 100,
+        paymentStatus: status,
+        transactionId: pi,
+      };
+      const paymentRes = await PaymentModel.create(paymentQuery);
+      if (paymentRes) {
+        return res.json({ success: true, paymentRes });
+      }
+    }
+  } catch (err) {
+    res.json({
+      msg: err,
+    });
+  }
 });
 
 module.exports = router;

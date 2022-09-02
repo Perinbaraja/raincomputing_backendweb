@@ -470,7 +470,7 @@ router.post("/verifyForgetPassword", async (req, res) => {
 
 router.put("/profilePicUpdate", async (req, res) => {
   const { email, profilePic } = req.body;
-  console.log("propic", req.body);
+  // console.log("propic", req.body);
   const queryData = {
     profilePic: profilePic,
   };

@@ -18,9 +18,9 @@ const appointmentSchema = mongoose.Schema(
       default: false,
     },
     attachments: [],
-    appointmentRequest: {
-      type: String,
-    },
+    // appointmentRequest: {
+    //   type: String,
+    // },
 
     aflag: {
       type: Boolean,

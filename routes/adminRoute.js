@@ -10,6 +10,7 @@ const AdminModel = require("../models/AdminModel");
 const FirmModel = require("../models/FirmModel");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
 const userModel = require("../models/userModel");
+const PaymentModel = require("../models/PaymentModel");
 const router = express.Router();
 
 router.get("/", (req, res) => res.send(" Admin Route"));
@@ -295,5 +296,28 @@ router.post("/getUserById" , async (req,res) => {
     });
   }
 });
+
+router.get("/allPaymentDetails", async(req,res) => {
+  try{
+    PaymentModel.find((err,data) => {
+      if(err){
+        return res.json({
+          msg: err,
+        });
+      }else{
+        return res.json({
+          success: true,
+          paymentIntent: data,
+        })
+      }
+    })
+
+  }catch (err){
+    return res.json({
+      msg:err,
+    });
+  }
+
+})
 
 module.exports = router;

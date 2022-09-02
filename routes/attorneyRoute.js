@@ -41,6 +41,7 @@ router.post("/register", async (req, res) => {
               lastname: updatedUser.lastname,
               email: updatedUser.email,
               attorneyStatus: status,
+              profilePic: updatedUser.profilePic,
             });
           } else {
             return res.json({
