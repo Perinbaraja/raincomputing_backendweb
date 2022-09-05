@@ -299,7 +299,16 @@ router.post("/getUserById" , async (req,res) => {
 
 router.get("/allPaymentDetails", async(req,res) => {
   try{
-    PaymentModel.find((err,data) => {
+    PaymentModel.find()
+    .populate({
+      path : "consumerId",
+      select: "firstname lastname ",
+    }) 
+    .populate({
+      path : "attorneyId",
+      populate : {path : "regUser" ,select: "firstname lastname"},
+    }) 
+     .exec((err, data) => {
       if(err){
         return res.json({
           msg: err,
@@ -308,11 +317,11 @@ router.get("/allPaymentDetails", async(req,res) => {
         return res.json({
           success: true,
           paymentIntent: data,
-        })
+        });
       }
     })
-
-  }catch (err){
+  }
+  catch (err){
     return res.json({
       msg:err,
     });
