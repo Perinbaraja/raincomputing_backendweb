@@ -10,6 +10,7 @@ const AdminModel = require("../models/AdminModel");
 const FirmModel = require("../models/FirmModel");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
 const userModel = require("../models/userModel");
+const Case = require("../models/Case");
 const PaymentModel = require("../models/PaymentModel");
 const router = express.Router();
 
@@ -70,9 +71,9 @@ router.post("/adminRegister", async (req, res) => {
 });
 
 router.post("/adminLogin", async (req, res) => {
-  const {  username, password } = req.body;
+  const { username, password } = req.body;
 
-  AdminModel.findOne({  username:  username }, async (err, isAdmin) => {
+  AdminModel.findOne({ username: username }, async (err, isAdmin) => {
     if (err) {
       return res.json({
         msg: "Login failed",
@@ -86,8 +87,7 @@ router.post("/adminLogin", async (req, res) => {
       return res.json({
         msg: "This account has been deactivated",
       });
-    }
-    else {
+    } else {
       const result = await hashValidator(password, isAdmin.password);
       if (result) {
         console.log(result, "result");
@@ -196,22 +196,28 @@ router.put("/removeUser", async (req, res) => {
 });
 
 router.put("/removeAttorney", async (req, res) => {
-  const { regUser } = req.body;
-  const removeAttorney = await RegAttorneyModel.findByIdAndUpdate(regUser, {
-    aflag: false,
-    status: "rejected",
-    lastModified: Date.now(),
-  });
-  const userID = removeAttorney.regUser.toString().substr(0, 38);
+  try {
+    const { regUser } = req.body;
+    const removeAttorney = await RegAttorneyModel.findByIdAndUpdate(regUser, {
+      aflag: false,
+      status: "rejected",
+      lastModified: Date.now(),
+    });
+    const userID = removeAttorney.regUser.toString().substr(0, 38);
 
-  const removeUser = await userModel.findByIdAndUpdate(userID, {
-    attorneyStatus: "rejected",
-    lastModified: Date.now(),
-  });
-  if (!removeUser) {
-    res.status(404);
-  } else {
-    res.json({ success: true, removeAttorney });
+    const removeUser = await userModel.findByIdAndUpdate(userID, {
+      attorneyStatus: "rejected",
+      lastModified: Date.now(),
+    });
+    if (!removeUser) {
+      res.status(404);
+    } else {
+      res.json({ success: true, removeAttorney });
+    }
+  } catch (err) {
+    return res.json({
+      msg: err,
+    });
   }
 });
 
@@ -271,62 +277,138 @@ router.get("/allReqAttorneyList", async (req, res) => {
     });
 });
 
-router.post("/getUserById" , async (req,res) => {
-  try{
+router.post("/getUserById", async (req, res) => {
+  try {
     const { userId } = req.body;
-    userModel.findById(userId , async (err,User) => {
-      if (err){
+    userModel.findById(userId, async (err, User) => {
+      if (err) {
         return res.json({
-          msg:err,
+          msg: err,
         });
-      }else if (User){
+      } else if (User) {
         return res.json({
-          success : true,
+          success: true,
           User,
         });
-      }else{
-        return res.json ({
-          msg : `No User Found With Id ${userId}`,
+      } else {
+        return res.json({
+          msg: `No User Found With Id ${userId}`,
         });
       }
     });
-  }catch (err) {
+  } catch (err) {
     return res.json({
       msg: err,
     });
   }
 });
 
-router.get("/allPaymentDetails", async(req,res) => {
-  try{
+router.get("/allPaymentDetails", async (req, res) => {
+  try {
     PaymentModel.find()
-    .populate({
-      path : "consumerId",
-      select: "firstname lastname ",
-    }) 
-    .populate({
-      path : "attorneyId",
-      populate : {path : "regUser" ,select: "firstname lastname"},
-    }) 
-     .exec((err, data) => {
-      if(err){
-        return res.json({
-          msg: err,
-        });
-      }else{
-        return res.json({
-          success: true,
-          paymentIntent: data,
-        });
-      }
-    })
-  }
-  catch (err){
+      .populate({
+        path: "consumerId",
+        select: "firstname lastname ",
+      })
+      .populate({
+        path: "attorneyId",
+        populate: { path: "regUser", select: "firstname lastname" },
+      })
+      .exec((err, data) => {
+        if (err) {
+          return res.json({
+            msg: err,
+          });
+        } else {
+          return res.json({
+            success: true,
+            paymentIntent: data,
+          });
+        }
+      });
+  } catch (err) {
     return res.json({
-      msg:err,
+      msg: err,
     });
   }
+});
 
-})
-
+router.get("/allCaseDetails", async (req, res) => {
+  Case.find({})
+    .populate([
+      {
+        path: "caseMembers",
+        select: "addedBy",
+      },
+    ])
+    .exec((err, list) => {
+      if (err) {
+        res.json({
+          msg: err,
+        });
+      } else {
+        res.json({
+          success: true,
+          cases: list,
+        });
+      }
+    });
+});
+// router.post("/getCaseById", async (req, res) => {
+//   try {
+//     const { caseid } = req.body;
+//     Case.findById(caseid, async (err, cases) => {
+//       if (err) {
+//         return res.json({
+//           msg: err,
+//         });
+//       } else if (cases) {
+//         return res.json({
+//           success: true,
+//           cases,
+//         });
+//       } else {
+//         return res.json({
+//           msg: `No Case Found With Id ${caseid}`,
+//         });
+//       }
+//     });
+//     console.log(res);
+//   } catch (err) {
+//     return res.json({
+//       msg: err,
+//     });
+//   }
+// });
+router.post("/getCaseById", async (req, res) => {
+  try {
+    const { caseid } = req.body;
+    Case.findOne({ _id: caseid })
+      .populate({
+        path: "caseMembers",
+        // select: "firstname lastname email",
+        populate: { path: "id", select: "firstname lastname email" },
+      })
+      .exec((err, cases) => {
+        if (err) {
+          return res.json({
+            msg: err,
+          });
+        } else if (cases) {
+          return res.json({
+            success: true,
+            cases,
+          });
+        } else {
+          return res.json({
+            msg: `No firm found with id ${caseid}`,
+          });
+        }
+      });
+  } catch (err) {
+    return res.json({
+      msg: err,
+    });
+  }
+});
 module.exports = router;
