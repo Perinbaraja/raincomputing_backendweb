@@ -20,6 +20,7 @@ router.post("/register", async (req, res) => {
         phoneNumber,
         address,
         status,
+        aflag:true,
       };
       const isAlreadyRegistered = await RegAttorneyModel.find({
         barNumber,
@@ -42,6 +43,7 @@ router.post("/register", async (req, res) => {
               email: updatedUser.email,
               attorneyStatus: status,
               profilePic: updatedUser.profilePic,
+              aflag:true,
             });
           } else {
             return res.json({

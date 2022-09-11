@@ -71,7 +71,7 @@ router.post("/appointmentrequest", async (req, res) => {
 router.post("/getAllAppointmentRequestByUserId", async (req, res) => {
   try {
     const { userID } = req.body;
-    AppointmentModel.find({ attorney: userID, appointmentstatus: "request" })
+    AppointmentModel.find({ attorney: userID })
       .populate({
         path: "User",
         select: "firstname lastname email casedata attachments status attorney",
