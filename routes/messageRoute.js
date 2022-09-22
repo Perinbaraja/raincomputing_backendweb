@@ -5,6 +5,7 @@ const router = Router();
 router.get("", (req, res) => res.send("Message route"));
 
 router.post("/send", messageController.SENDMESSAGE);
+router.post("/reply", messageController.REPLYMESSAGE);
 router.post("/get", messageController.GETMESSAGES);
 router.post("/getFiles", messageController.GETFILES);
 

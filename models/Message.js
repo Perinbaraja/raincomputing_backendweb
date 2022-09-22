@@ -19,6 +19,24 @@ const messageSchema = mongoose.Schema(
         ref: "UserModel",
       },
     ],
+
+    replies: [
+      {
+        sender: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "UserModel",
+        },
+        replyMsg: {
+          type: String,
+        },
+        createdAt: { type: Date, default: new Date() },
+        aflag:{
+          type:Boolean,
+          default:true
+        }
+      },
+    ],
+
     messageData: {
       type: String,
     },

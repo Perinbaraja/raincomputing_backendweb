@@ -29,6 +29,25 @@ const SENDMESSAGE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const REPLYMESSAGE = async (req, res) => {
+  try {
+    const {
+      id,
+      sender,
+      msg
+    } = req.body;
+    const replyQuery = {
+      sender,
+      replyMsg:msg,
+    };
+    const replyMessage = await Message.findByIdAndUpdate(id, {
+      $push: { replies: replyQuery },
+    });;
+    if (replyMessage) return res.json({ success: true, replyMessage });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
 
 const GETMESSAGES = async (req, res) => {
   try {
@@ -103,4 +122,5 @@ module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
   GETFILES,
+  REPLYMESSAGE
 };
