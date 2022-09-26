@@ -53,6 +53,28 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const GET_ONE_ON_ONE_CHAT_FORWARD = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const chats = await Group.find(
+      {
+        isGroup: false,
+        aflag: true,
+        groupMembers: {
+          $elemMatch: {
+            id: userId,
+            isActive: true,
+          },
+        },
+      },
+      null,
+      { sort: { updatedAt: -1 } }
+    ).populate("groupMembers.id", "firstname lastname email profilePic");
+    if (chats) return res.json({ success: true, groups: chats });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
 
 const GET_ONE_ON_ONE_CHAT = async (req, res) => {
   try {
@@ -139,4 +161,5 @@ module.exports.groupController = {
   CREATE_ONE_ON_ONE_CHAT,
   GET_ONE_ON_ONE_CHAT,
   UPDATE_GROUP,
+  GET_ONE_ON_ONE_CHAT_FORWARD,
 };

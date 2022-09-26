@@ -8,5 +8,6 @@ router.post("/send", messageController.SENDMESSAGE);
 router.post("/reply", messageController.REPLYMESSAGE);
 router.post("/get", messageController.GETMESSAGES);
 router.post("/getFiles", messageController.GETFILES);
+router.post("/getmsgById", messageController.GETMESSAGEBYID);
 
 module.exports = router;

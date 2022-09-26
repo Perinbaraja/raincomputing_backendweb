@@ -11,6 +11,7 @@ const SENDMESSAGE = async (req, res) => {
       messageData,
       isAttachment,
       attachments,
+      isForward,
     } = req.body;
     const messageQuery = {
       groupId,
@@ -19,6 +20,7 @@ const SENDMESSAGE = async (req, res) => {
       messageData,
       isAttachment,
       attachments,
+      isForward,
     };
     if (caseId) {
       messageQuery.caseId = caseId;
@@ -67,6 +69,31 @@ const GETMESSAGES = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const GETMESSAGEBYID = async (req, res) => {
+  try {
+      const { msgId } = req.body;
+      Message.findById(msgId, async (err, Msg) => {
+        if (err) {
+          return res.json({
+            msg: err,
+          });
+        } else if (Msg) {
+          return res.json({
+            success: true,
+            Msg,
+          });
+        } else {
+          return res.json({
+            msg: `No Msg Found `,
+          });
+        }
+      });
+    } catch (err) {
+      return res.json({
+        msg: err,
+      });
+    }
+  };
 const GETFILES = async (req, res) => {
   try {
     const { caseId, searchText = "" } = req.body;
@@ -122,5 +149,6 @@ module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
   GETFILES,
-  REPLYMESSAGE
+  REPLYMESSAGE,
+  GETMESSAGEBYID,
 };

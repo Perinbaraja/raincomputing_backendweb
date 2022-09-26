@@ -45,6 +45,10 @@ const messageSchema = mongoose.Schema(
       default: false,
     },
     attachments: [],
+    isForward: {
+      type: Boolean,
+      default: false,
+    },
     aflag: {
       type: Boolean,
       default: true,
