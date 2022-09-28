@@ -9,5 +9,5 @@ router.post("/reply", messageController.REPLYMESSAGE);
 router.post("/get", messageController.GETMESSAGES);
 router.post("/getFiles", messageController.GETFILES);
 router.post("/getmsgById", messageController.GETMESSAGEBYID);
-
+router.post("/deletemsg", messageController.DELETEMSG);
 module.exports = router;

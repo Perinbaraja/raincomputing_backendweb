@@ -33,18 +33,14 @@ const SENDMESSAGE = async (req, res) => {
 };
 const REPLYMESSAGE = async (req, res) => {
   try {
-    const {
-      id,
-      sender,
-      msg
-    } = req.body;
+    const { id, sender, msg } = req.body;
     const replyQuery = {
       sender,
-      replyMsg:msg,
+      replyMsg: msg,
     };
     const replyMessage = await Message.findByIdAndUpdate(id, {
       $push: { replies: replyQuery },
-    });;
+    });
     if (replyMessage) return res.json({ success: true, replyMessage });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
@@ -71,29 +67,60 @@ const GETMESSAGES = async (req, res) => {
 };
 const GETMESSAGEBYID = async (req, res) => {
   try {
-      const { msgId } = req.body;
-      Message.findById(msgId, async (err, Msg) => {
-        if (err) {
-          return res.json({
-            msg: err,
-          });
-        } else if (Msg) {
-          return res.json({
-            success: true,
-            Msg,
-          });
-        } else {
-          return res.json({
-            msg: `No Msg Found `,
-          });
-        }
-      });
-    } catch (err) {
+    const { msgId } = req.body;
+    Message.findById(msgId, async (err, Msg) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else if (Msg) {
+        return res.json({
+          success: true,
+          Msg,
+        });
+      } else {
+        return res.json({
+          msg: `No Msg Found `,
+        });
+      }
+    });
+  } catch (err) {
+    return res.json({
+      msg: err,
+    });
+  }
+};
+const DELETEMSG = async (req, res) => {
+  try {
+    const { id, deleteIt, createdAt } = req.body;
+    today = new Date();
+    time1 = today.valueOf();
+    date1 = new Date(createdAt);
+    //time2 = new Date().getMinutes();
+    time2 = date1.valueOf();
+    time3 = time1 - time2;
+    if (deleteIt) {
+      if (time3 < 60000) {
+        const deletedmsg = await Message.findByIdAndUpdate(id, {
+          aflag: false,
+        });
+        if (deletedmsg)
+          return res.json({ success: true, deletedmsg, time1, time2, time3 });
+      } else {
+        return res.json({
+          msg: "Unable to Delete later",
+        });
+      }
+    } else {
       return res.json({
-        msg: err,
+        msg: "Unable to Delete",
       });
     }
-  };
+  } catch (err) {
+    console.log("Delete Message error", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
 const GETFILES = async (req, res) => {
   try {
     const { caseId, searchText = "" } = req.body;
@@ -151,4 +178,5 @@ module.exports.messageController = {
   GETFILES,
   REPLYMESSAGE,
   GETMESSAGEBYID,
+  DELETEMSG,
 };
