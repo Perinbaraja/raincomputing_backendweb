@@ -1,5 +1,9 @@
+const { jsPDF } = require("jspdf");
+const autoTable = require("jspdf-autotable");
+const moment = require("moment");
 const config = require("../config");
 const Message = require("../models/Message");
+const { sendMail } = require("../services/mail.services");
 
 const SENDMESSAGE = async (req, res) => {
   try {
@@ -171,7 +175,104 @@ const GETFILES = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const MAIL_CHAT = async (req, res) => {
+  try {
+    const { mail, chatRoomId, caseName, groupName } = req.body;
+    console.log("chatRoomId : " + chatRoomId);
+    const chatMessages = await Message.find({
+      groupId:chatRoomId,
+    }).populate({
+      path: "sender",
+      select: "firstname lastname email",
+    });
+    const doc = new jsPDF();
+    const header = [
+      ["Sender", "message", "Time", "Group name", "Case name", "Attachments"],
+    ];
+    let rows = [];
+    chatMessages.map((m) => {
+      const sender = m?.sender?.firstname + " " + m?.sender?.lastname;
+      const message = m?.messageData;
+      const time = moment(m?.createdAt).format("DD-MM-YY HH:mm");
+      const attachments = m.isAttachment ? m.attachments?.length : "-";
+      const tempRow = [sender, message, time, groupName, caseName, attachments];
 
+      rows.push(tempRow);
+    });
+    doc.autoTable({
+      bodyStyles: { valign: "top" },
+      margin: {
+        top: 30,
+      },
+      head: header,
+      body: rows,
+      theme: "grid",
+      columnStyles: { 5: { halign: "center" } },
+      headStyles: {
+        fillColor: [0, 0, 230],
+        fontSize: 12,
+        fontStyle: "bold",
+        font: "courier",
+        halign: "center",
+      },
+      willDrawCell: (data) => {
+        if (
+          data.section === "body" &&
+          data.column.index === 5 &&
+          data.cell.raw !== "-"
+        ) {
+          data.doc.setFillColor("green");
+          data.doc.setTextColor("black");
+        }
+      },
+      didDrawPage: (data) => {
+        doc.setFontSize(20);
+        doc.setTextColor(40);
+        doc.text(`${caseName}-${groupName}`, data.settings.margin.left, 20);
+      },
+    });
+    const docName = `${caseName}-${groupName}-${moment(Date.now()).format(
+      "DD-MM-YY HH:mm"
+    )}`;
+    // doc.save(docName)
+    const mailOptions = {
+      to: mail,
+      subject: "Chat Messages",
+      html: `<p>Chat Messages for + ${docName}</p>`,
+      attachments: [
+        {
+          filename: `${docName}.pdf`,
+          content: doc.output(),
+        },
+      ],
+    };
+    const mailSent = await sendMail(mailOptions);
+    res.json({ success: true ,mailSent});
+  } catch (err) {
+    console.log("mailChat err: ", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+const GETSENDERBYNAMEID = async(req,res) => {
+  try{
+    const { sender } =req.body;
+    const senderName = {
+      sender,
+      aflag:true,
+    }
+    const senderDetails =await Message.find(senderName).populate({
+      path:"sender",
+      select: "firstname lastname",
+    });
+    if(senderDetails)
+    return res.json({
+      success:true,
+      senderDetails,
+    });
+  }catch(err) {
+    return res.json({msg: err || config.DEFAULT_RES_ERROR})
+  }
+}
 module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
@@ -179,4 +280,6 @@ module.exports.messageController = {
   REPLYMESSAGE,
   GETMESSAGEBYID,
   DELETEMSG,
+  MAIL_CHAT,
+  GETSENDERBYNAMEID,
 };

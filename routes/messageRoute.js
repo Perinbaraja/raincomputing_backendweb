@@ -10,4 +10,7 @@ router.post("/get", messageController.GETMESSAGES);
 router.post("/getFiles", messageController.GETFILES);
 router.post("/getmsgById", messageController.GETMESSAGEBYID);
 router.post("/deletemsg", messageController.DELETEMSG);
+router.post("/mailChat", messageController.MAIL_CHAT);
+router.post("/getsendernameById", messageController.GETSENDERBYNAMEID);
+
 module.exports = router;

@@ -14,6 +14,5 @@ router.post("/getChat", groupController.GET_ONE_ON_ONE_CHAT);
 
 router.post("/updateGroup", groupController.UPDATE_GROUP);
 
-router.post("/getChatforward", groupController.GET_ONE_ON_ONE_CHAT_FORWARD);
 
 module.exports = router;
