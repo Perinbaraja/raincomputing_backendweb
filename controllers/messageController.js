@@ -273,6 +273,27 @@ const GETSENDERBYNAMEID = async(req,res) => {
     return res.json({msg: err || config.DEFAULT_RES_ERROR})
   }
 }
+const GETGROUPBYNAMEID=async(req,res) =>{
+  try{
+    const {caseId}= req.body;
+    const groupName = {
+      caseId,
+      aflag:true,
+    }
+    const caseDetails = await Message.find(groupName).populate({
+      path:"caseId",
+      select: "caseName ",
+    });
+    if(caseDetails)
+    return res.json({
+      success:true,
+      caseDetails,
+    });
+
+  }catch(err) {
+    return res.json({msg: err || config.DEFAULT_RES_ERROR})
+  }
+}
 module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
@@ -282,4 +303,5 @@ module.exports.messageController = {
   DELETEMSG,
   MAIL_CHAT,
   GETSENDERBYNAMEID,
+  GETGROUPBYNAMEID,
 };
