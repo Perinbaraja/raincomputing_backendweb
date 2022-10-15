@@ -40,6 +40,15 @@ const messageSchema = mongoose.Schema(
     messageData: {
       type: String,
     },
+    pinMessage: [
+      {
+      type: String,
+    }
+  ],
+  isPinned: {
+    type: Boolean,
+    default: false
+  },
     isAttachment: {
       type: Boolean,
       default: false,

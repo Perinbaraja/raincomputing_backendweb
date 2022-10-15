@@ -294,6 +294,17 @@ const GETGROUPBYNAMEID=async(req,res) =>{
     return res.json({msg: err || config.DEFAULT_RES_ERROR})
   }
 }
+const PINNEDMESSAGE = async(req, res) => {
+  try{
+    const { Id } = req.body;
+const pinnedMessage = await Message.findByIdAndUpdate(Id,{isPinned: true});
+if(pinnedMessage)
+return res.json({success: true, message: pinnedMessage})
+  }
+  catch(err){ 
+     return res.json({msg: err || config.DEFAULT_RES_ERROR}) 
+    }
+}
 module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
@@ -304,4 +315,5 @@ module.exports.messageController = {
   MAIL_CHAT,
   GETSENDERBYNAMEID,
   GETGROUPBYNAMEID,
+  PINNEDMESSAGE,
 };

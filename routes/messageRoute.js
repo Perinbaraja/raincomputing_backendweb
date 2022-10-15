@@ -13,5 +13,6 @@ router.post("/deletemsg", messageController.DELETEMSG);
 router.post("/mailChat", messageController.MAIL_CHAT);
 router.post("/getsendernameById", messageController.GETSENDERBYNAMEID);
 router.post("/getgroupnameById", messageController.GETGROUPBYNAMEID);
+router.post("/pinnedmsgById", messageController.PINNEDMESSAGE);
 
 module.exports = router;
