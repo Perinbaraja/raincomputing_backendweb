@@ -35,6 +35,20 @@ const SENDMESSAGE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const FILENOTES = async (req, res) => {
+  try {
+    const { id ,attachmentId,note} = req.body;
+    const findQuery ={
+      _id:id,
+      "attachments.id":attachmentId,
+    }
+    const isFound = await Message.findOneAndUpdate(findQuery,{ "$set": { "attachments.$.note" : note } },{returnDocument:'after'});
+    return res.json({success:true,isFound});
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
 const REPLYMESSAGE = async (req, res) => {
   try {
     const { id, sender, msg } = req.body;
@@ -145,13 +159,16 @@ const GETFILES = async (req, res) => {
         const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
         const senderId = f?.sender?._id;
         const time = f?.createdAt;
+        const msgId = f?._id;
         f?.attachments?.map((a) => {
           const typeIndex = a?.name.indexOf(".");
           const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
           const size = a?.size;
           const id = a?.id;
           const name = a?.name;
+          const note = a?.note;
           struturedFiles.push({
+            msgId,
             id,
             senderName,
             senderId,
@@ -159,6 +176,7 @@ const GETFILES = async (req, res) => {
             name,
             size,
             time,
+            note,
           });
         });
       });
@@ -316,4 +334,5 @@ module.exports.messageController = {
   GETSENDERBYNAMEID,
   GETGROUPBYNAMEID,
   PINNEDMESSAGE,
+  FILENOTES,
 };

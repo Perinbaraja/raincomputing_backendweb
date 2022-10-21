@@ -14,5 +14,6 @@ router.post("/mailChat", messageController.MAIL_CHAT);
 router.post("/getsendernameById", messageController.GETSENDERBYNAMEID);
 router.post("/getgroupnameById", messageController.GETGROUPBYNAMEID);
 router.post("/pinnedmsgById", messageController.PINNEDMESSAGE);
+router.post("/notes", messageController.FILENOTES);
 
 module.exports = router;

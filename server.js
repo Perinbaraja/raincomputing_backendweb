@@ -319,11 +319,11 @@ const create = async () => {
   app.get("/", (req, res) => res.send("Hello"));
 
   app.use("/api/user", require("./routes/userRoute"));
-  app.use("/api/chat", require("./routes/privateChatRoute"));
+  // app.use("/api/chat", require("./routes/privateChatRoute"));
   app.use("/api/pchat", require("./routes/chatRoute"));
   app.use("/api/attorney", require("./routes/attorneyRoute"));
   app.use("/api/firm", require("./routes/firmRoute"));
-  app.use("/api/subgroup", require("./routes/subgroupRoute"));
+  // app.use("/api/subgroup", require("./routes/subgroupRoute"));
   app.use("/api/case", require("./routes/caseRoute"));
   app.use("/api/group", require("./routes/groupRoute"));
   app.use("/api/message", require("./routes/messageRoute"));

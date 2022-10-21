@@ -45,6 +45,21 @@ const messageSchema = mongoose.Schema(
       type: String,
     }
   ],
+    notes: [
+      {
+      attachmentid: {
+        type: String,
+      },
+      note:{
+      type: String,
+      },
+      createdAt: { type: Date, default: new Date() },
+      aflag:{
+        type:Boolean,
+        default:true
+      }
+    }
+  ],
   isPinned: {
     type: Boolean,
     default: false
