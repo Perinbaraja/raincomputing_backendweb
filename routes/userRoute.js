@@ -468,6 +468,30 @@ router.post("/verifyForgetPassword", async (req, res) => {
   }
 });
 
+router.put("/changepassword", async (req,res) => {
+  const {userID,password} =req.body;
+  const user = await userModel.findOne({_id:userID});
+  if(user){
+    const newPassword = await  hashGenerator(password);
+    const userData =await userModel.findByIdAndUpdate({_id: userID},{$set:{
+      password:newPassword
+    }})
+    res.status(200).send({
+        success: true,
+        userID: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        attorneyStatus: user.attorneyStatus,
+        profilePic: user.profilePic,
+        appointmentStatus: user.appointmentStatus,
+        msg:"password changed successfully"
+      });
+  }else{
+    res.status(200).send({success:false,msg:"user does not "});
+  }
+})
+
 router.put("/profilePicUpdate", async (req, res) => {
   const { email, profilePic } = req.body;
   // console.log("propic", req.body);
