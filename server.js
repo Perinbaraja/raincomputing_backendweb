@@ -331,6 +331,7 @@ const create = async () => {
   app.use("/api/bff", require("./routes/bffRoute"));
   app.use("/api/appointment", require("./routes/appointmentRoute"));
   app.use("/api/payment", require("./routes/paymentRoute"));
+  app.use("/api/mail", require("./routes/mailReplyRoute"));
   // return app;
 
   return server;
