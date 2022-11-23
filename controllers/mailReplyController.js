@@ -60,110 +60,136 @@ async function getDrafts(req, res) {
 
 async function searchMail(req, res) {
   try {
-    const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=${req.params.search}`;
+    const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=RCID is:UNREAD&INBOX`;
     const { token } = await oAuth2Client.getAccessToken();
     const config = generateConfig(url, token);
     const response = await axios(config);
+    let sendMessages = [];
     if (response?.data?.messages?.length > 0) {
-      // Promise.all().then()
-      const readMailURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${response?.data?.messages[0]?.id}`;
-      const readMailConfig = generateConfig(readMailURL, token);
-      const readMailResponse = await axios(readMailConfig);
-      const messsageData = readMailResponse.data;
-      const { payload } = messsageData;
-      let validMessageData = "";
-      let validAttachments = [];
-      let parts = [payload];
-      while (parts.length) {
-        let part = parts.shift();
-        if (part.parts) {
-          parts = parts.concat(part.parts);
-        }
+      Promise.all(
+        response?.data?.messages?.map(async (mailMes) => {
+          const readMailURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${mailMes?.id}`;
+          const readMailConfig = generateConfig(readMailURL, token);
+          const readMailResponse = await axios(readMailConfig);
+          const messsageData = readMailResponse.data;
+          const { payload } = messsageData;
+          let validMessageData = "";
+          let validAttachments = [];
+          let parts = [payload];
+          while (parts.length) {
+            let part = parts.shift();
+            if (part.parts) {
+              parts = parts.concat(part.parts);
+            }
 
-        if (part.mimeType === "text/plain" && validMessageData === "") {
-          validMessageData = decodeURIComponent(
-            escape(atob(part.body.data.replace(/\-/g, "+").replace(/\_/g, "/")))
-          );
-        }
-        // if (part.mimeType === "application/pdf") {
-        //   const attachmentURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${response?.data?.messages[0]?.id}/attachments/${part?.body?.attachmentId}`;
-        //   const attachmentConfig = generateConfig(attachmentURL, token);
-        //   const attachmentResponse = await axios(attachmentConfig);
-        //   console.log(
-        //     "attachmentResponse : " + JSON.stringify(attachmentResponse?.data)
-        //   );
-        //   validMessageData = attachmentResponse?.data?.data;
-        // }
-      }
-      const groupId = payload?.headers
-        .find((h) => h?.name === "Subject")
-        ?.value.split("__")[1];
-      const senderEmail = payload?.headers
-        .find((h) => h?.name === "From")
-        ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
-      const group = await Group.findById(groupId).populate({
-        path: "groupMembers.id",
-        select: "email",
+            if (part.mimeType === "text/plain" && validMessageData === "") {
+              validMessageData = decodeURIComponent(
+                escape(
+                  atob(part.body.data.replace(/\-/g, "+").replace(/\_/g, "/"))
+                )
+              );
+            }
+            // if (part.mimeType === "application/pdf") {
+            //   const attachmentURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${response?.data?.messages[0]?.id}/attachments/${part?.body?.attachmentId}`;
+            //   const attachmentConfig = generateConfig(attachmentURL, token);
+            //   const attachmentResponse = await axios(attachmentConfig);
+            //   console.log(
+            //     "attachmentResponse : " + JSON.stringify(attachmentResponse?.data)
+            //   );
+            //   validMessageData = attachmentResponse?.data?.data;
+            // }
+          }
+          const groupId = payload?.headers
+            .find((h) => h?.name === "Subject")
+            ?.value.split("__")[1];
+          const senderEmail = payload?.headers
+            .find((h) => h?.name === "From")
+            ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
+          const group = await Group.findById(groupId).populate({
+            path: "groupMembers.id",
+            select: "email",
+          });
+          if (group) {
+            const sender = group?.groupMembers?.find(
+              (g) => g?.id?.email === senderEmail
+            )?.id?._id;
+            const receivers = group?.groupMembers
+              ?.filter((gm) => gm?.id?.email !== senderEmail)
+              ?.map((g) => g?.id?._id);
+            const messageQuery = {
+              groupId,
+              sender,
+              receivers,
+              messageData: validMessageData,
+            };
+            if (group.caseId) {
+              messageQuery.caseId = group.caseId;
+            }
+            // sendMessages.push(messageQuery);
+
+            const createdMessage = await Message.create(messageQuery);
+            if (createdMessage) {
+              const { token: accessToken } =
+                await oAuth2Client.getAccessToken();
+              await axios({
+                method: "post",
+                url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
+                headers: {
+                  Authorization: `Bearer ${accessToken} `,
+                  // "Content-type": "application/json"
+                },
+                data: {
+                  addLabelIds: ["Label_2117604939096943395"],
+                  removeLabelIds: ["UNREAD"],
+                },
+              });
+              sendMessages.push(createdMessage);
+            }
+            // else {
+            //   return res.json({
+            //     msg: "Failed to forward mail",
+            //     groupId,
+            //     data: response.data,
+            //   });
+            // }
+          } else {
+            return console.log("Group not found");
+            // return res.json({
+            //   msg: "No group found ",
+            //   groupId,
+            //   data: response.data,
+            // });
+          }
+        })
+      ).then(() => {
+        return console.log({ success: true, sendMessages });
+        // return res.json({ success: true, sendMessages });
       });
-      if (group) {
-        const sender = group?.groupMembers?.find(
-          (g) => g?.id?.email === senderEmail
-        )?.id?._id;
-        const receivers = group?.groupMembers
-          ?.filter((gm) => gm?.id?.email !== senderEmail)
-          ?.map((g) => g?.id?._id);
-        const messageQuery = {
-          groupId,
-          sender,
-          receivers,
-          messageData: validMessageData,
-        };
-        if (group.caseId) {
-          messageQuery.caseId = group.caseId;
-        }
-        const createdMessage = await Message.create(messageQuery);
-        if (createdMessage) {
-          const { token: accessToken } = await oAuth2Client.getAccessToken();
-          await axios({
-            method: "post",
-            url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${response?.data?.messages[0]?.id}/modify`,
-            headers: {
-              Authorization: `Bearer ${accessToken} `,
-              // "Content-type": "application/json"
-            },
-            data: {
-              addLabelIds: ["Label_2117604939096943395"],
-              removeLabelIds: ["UNREAD"],
-            },
-          });
-          return res.json({ success: true, createdMessage });
-        } else {
-          return res.json({
-            msg: "Failed to forward mail",
-            groupId,
-            data: response.data,
-          });
-        }
-      } else {
-        return res.json({
-          msg: "No group found ",
-          groupId,
-          data: response.data,
-        });
-      }
     } else {
-      console.log("NO messages Found", response.data);
-      return res.json({ data: response.data });
+      return console.log("NO messages Found", response.data);
     }
   } catch (error) {
-    console.log(error);
-    // console.log(error?.name);
-    // console.log(error?.response?.data);
-    // console.log(error?.response?.status);
-    // console.log(error?.response?.headers);
-    return res.send(error);
+    return console.log(error);
   }
 }
+
+setInterval(searchMail, 600000);
+
+// async function searchMail(req, res) {
+//   try {
+//     const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=RCID is:UNREAD&INBOX`;
+//     const { token } = await oAuth2Client.getAccessToken();
+//     const config = generateConfig(url, token);
+//     const response = await axios(config);
+//     const readMailURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${response?.data?.messages[0].id}`;
+//     const readMailConfig = generateConfig(readMailURL, token);
+//     const readMailResponse = await axios(readMailConfig);
+//     const messsageData = readMailResponse.data;
+//     return res.json({ readMailResponse: messsageData });
+//   } catch (error) {
+//     res.json({ msg: error.message });
+//   }
+// }
 
 async function readMail(req, res) {
   try {

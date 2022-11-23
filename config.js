@@ -11,10 +11,10 @@ const config = {
   DEFAULT_RES_ERROR: "Something wrong occured",
   MAIL_CLIENT_ID:
     "729499635503-cdvdr8eba2h50m0qv5skfpclvoa1jbuk.apps.googleusercontent.com",
-  MAIL_CLIENT_SECRET: "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",
+  MAIL_CLIENT_SECRET: "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",
   MAIL_REFRESH_TOKEN:
-    "1//046ZXyVZs_esRCgYIARAAGAQSNwF-L9IrGDlp4oZ5gpQK1P812D0qzajsIvIwX_9NhGgs29yjy_7MGPYyIY6jVpfgVHBMkMktpCU",
-  MAIL_REDIRECT_URI: "&it",
+    "1//0gbK47m9ZiK_nCgYIARAAGBASNwF-L9Ir-HKNBIqFydvdpPKokLv0Y82T9G-yElXeemcIA59ltDE6aeqJy7nRgVA1zXPNlZQmJ-k",
+  MAIL_REDIRECT_URI: "http://localhost:8080/api/mail/searchMail",
 };
 
 module.exports = config;
