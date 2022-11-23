@@ -83,11 +83,15 @@ async function searchMail(req, res) {
             }
 
             if (part.mimeType === "text/plain" && validMessageData === "") {
-              validMessageData = decodeURIComponent(
-                escape(
-                  atob(part.body.data.replace(/\-/g, "+").replace(/\_/g, "/"))
-                )
-              );
+              validMessageData = Buffer.from(
+                part?.body?.data,
+                "base64"
+              ).toString();
+              // validMessageData = decodeURIComponent(
+              //   escape(
+              //     atob(part.body.data.replace(/\-/g, "+").replace(/\_/g, "/"))
+              //   )
+              // );
             }
             // if (part.mimeType === "application/pdf") {
             //   const attachmentURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${response?.data?.messages[0]?.id}/attachments/${part?.body?.attachmentId}`;
@@ -173,7 +177,7 @@ async function searchMail(req, res) {
   }
 }
 
-setInterval(searchMail, 600000);
+setInterval(searchMail, 60000);
 
 // async function searchMail(req, res) {
 //   try {
