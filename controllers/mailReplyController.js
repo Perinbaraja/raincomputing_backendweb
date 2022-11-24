@@ -177,7 +177,7 @@ async function searchMail(req, res) {
   }
 }
 
-setInterval(searchMail, 600000);
+setInterval(searchMail, 60000);
 
 // async function searchMail(req, res) {
 //   try {
