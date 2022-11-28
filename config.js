@@ -1,13 +1,13 @@
 const config = {
   MONGO_URL:
-    "mongodb://rainmongo:OSSawJsHkv85Hv6GA9uAKbEKtEX0bMlnyJ8W8HOEcHHudLsf0CAsjTtOdxY9zZfhuHT3UTMExsDMnCsOpJQG4Q%3D%3D@rainmongo.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@rainmongo@",
+    "mongodb://raincomputingcosmosdb:tBYDpH68hIKiWL1dd72FlUV7m8tn3rqy6OV0fVWDSuzvSJ8XtovbzRP6bG4xMPKIwfTCHHr2AIveACDbx3ff6w==@raincomputingcosmosdb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@raincomputingcosmosdb@",
   JWT_SECRET: "dev",
   PORT: 8080,
   MAIL_SERVICE: "gmail",
   SENDER_MAIL: "rpmongotest@gmail.com",
   MAIL_PASSWORD: "qpomthjiesygydjn",
   RESET_PASSWORD: "dev123",
-  FE_URL: "https://raincomputing1.azurewebsites.net",
+  FE_URL: "https://raincomputing.azurewebsites.net",
   DEFAULT_RES_ERROR: "Something wrong occured",
   MAIL_CLIENT_ID:
     "729499635503-cdvdr8eba2h50m0qv5skfpclvoa1jbuk.apps.googleusercontent.com",
