@@ -193,13 +193,17 @@ async function searchMail(req, res) {
           }
         })
       ).then(() => {
-        return res.json({ success: true, sendMessages });
+console.log("successfully uploaded mail data : ",sendMessages)
+        // return res.json({ success: true, sendMessages });
       });
     } else {
-      return res.json({ msg: "No data found" });
+      console.log("no data found");
+      // return res.json({ msg: "No data found" });
     }
   } catch (error) {
-    return res.json({ error });
+    console.log("error : " + error);
+
+    // return res.json({ error });
   }
 }
 
