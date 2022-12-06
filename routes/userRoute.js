@@ -143,6 +143,7 @@ router.post("/login", async (req, res) => {
           attorneyStatus: isUser.attorneyStatus,
           appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
+          admin: true,
         });
         //   }
         // });

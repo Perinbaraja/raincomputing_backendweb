@@ -17,14 +17,14 @@ const router = express.Router();
 router.get("/", (req, res) => res.send(" Admin Route"));
 
 router.post("/adminRegister", async (req, res) => {
-  const { firstname, lastname, username, password } = req.body;
+  const { firstname, lastname,email, password } = req.body;
   // console.log(req.body, "req.body");
   if (!password) {
     return res.json({
       msg: "Password Empty",
     });
   }
-  AdminModel.findOne({ username: username }, async (err, isAdmin) => {
+  userModel.findOne({ firstname: firstname, admin: true }, async (err, isAdmin) => {
     if (err) {
       return res.json({
         msg: "Admin Registeration failed",
@@ -39,7 +39,7 @@ router.post("/adminRegister", async (req, res) => {
         console.log("Alre");
 
         return res.json({
-          msg: "username Already Exist",
+          msg: "Admin Already Exist",
         });
       }
     } else {
@@ -48,11 +48,13 @@ router.post("/adminRegister", async (req, res) => {
       const queryData = {
         firstname: firstname,
         lastname: lastname,
-        username: username,
+        // adminName: adminName,
+        email: email,
         password: hashPassword,
         aflag: true,
+        admin:true,
       };
-      AdminModel.create(queryData, async (err, admin) => {
+      userModel.create(queryData, async (err, admin) => {
         if (err) {
           return res.json({
             msg: "Admin Registeration failed",
@@ -71,9 +73,9 @@ router.post("/adminRegister", async (req, res) => {
 });
 
 router.post("/adminLogin", async (req, res) => {
-  const { username, password } = req.body;
+  const { firstname, password } = req.body;
 
-  AdminModel.findOne({ username: username }, async (err, isAdmin) => {
+  userModel.findOne({ firstname: firstname, admin: true }, async (err, isAdmin) => {
     if (err) {
       return res.json({
         msg: "Login failed",
@@ -100,6 +102,7 @@ router.post("/adminLogin", async (req, res) => {
           firstname: isAdmin.firstname,
           lastname: isAdmin.lastname,
           aflag: true,
+          admin: true,
           token: "JWT " + jwtToken,
         };
         res.cookie("jwt", jwtToken, {
@@ -112,8 +115,9 @@ router.post("/adminLogin", async (req, res) => {
           adminID: isAdmin._id,
           firstname: isAdmin.firstname,
           lastname: isAdmin.lastname,
-          username: isAdmin.username,
+          // username: isAdmin.username,
           token: "JWT " + jwtToken,
+          admin: true,
         });
       } else {
         return res.json({
