@@ -5,7 +5,7 @@ const config = {
   PORT: 8080,
   MAIL_SERVICE: "gmail",
   SENDER_MAIL: "rpmongotest@gmail.com",
-  MAIL_PASSWORD: "qpomthjiesygydjn",
+  MAIL_PASSWORD: "hspbrzryscrtuqqf",
   RESET_PASSWORD: "dev123",
   FE_URL: "https://raincomputing.azurewebsites.net",
   DEFAULT_RES_ERROR: "Something wrong occured",
@@ -13,7 +13,7 @@ const config = {
     "729499635503-cdvdr8eba2h50m0qv5skfpclvoa1jbuk.apps.googleusercontent.com",
   MAIL_CLIENT_SECRET: "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",
   MAIL_REFRESH_TOKEN:
-    "1//04v4_rRE3SlW8CgYIARAAGAQSNwF-L9IrbGCpalOA7tTo7KapzmsKL596V3rY62EaQOgzjCZkSdobIEfipYuNKLi1RK2urxX25sU",
+    "1//04hSPpFpVYO5jCgYIARAAGAQSNwF-L9IrLqgT7eG-ishXL4XyNQQtKguzgXPyfbsRbS9NqsUWYA0tZr6LNG8xBVD5EPctmT-g8Kc",
   MAIL_REDIRECT_URI: "http://localhost:8080/api/mail/searchMail",
 };
 
