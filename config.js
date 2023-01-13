@@ -7,13 +7,13 @@ const config = {
   SENDER_MAIL: "rpmongotest@gmail.com",
   MAIL_PASSWORD: "hspbrzryscrtuqqf",
   RESET_PASSWORD: "dev123",
-  FE_URL: "https://raincomputing.azurewebsites.net",
+  FE_URL: "https://raincomputing.net",
   DEFAULT_RES_ERROR: "Something wrong occured",
   MAIL_CLIENT_ID:
     "729499635503-cdvdr8eba2h50m0qv5skfpclvoa1jbuk.apps.googleusercontent.com",
   MAIL_CLIENT_SECRET: "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",
   MAIL_REFRESH_TOKEN:
-    "1//04fEimXTpfHGzCgYIARAAGAQSNwF-L9IrFQ7zLctRdLrgQ6z07KDG-YuRZmQin1tWi2gGWW6kQzRahsAajrQD5hQWroVEHtFNZF4",
+    "1//04b3pXsn_MdivCgYIARAAGAQSNwF-L9IrcH2iTD2HHkvka91VfO0zGAZk1dAT94e_L3DCsefpN0brAB-2VZxmXW_fXXDgYIvz7N4",
   MAIL_REDIRECT_URI: "http://localhost:8080/api/mail/searchMail",
 };
 
