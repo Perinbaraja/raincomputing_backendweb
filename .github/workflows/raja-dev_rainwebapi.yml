@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
+    steps1:
       - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-npm
@@ -46,15 +46,15 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-
+    steps2:
       - name: Zip all files for upload between jobs
         run: zip react.zip ./* 
             
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
-        name: node-app
-        path: react.zip
+          name: node-app
+          path: react.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-    steps:
+    steps1:
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
@@ -77,6 +77,6 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F64030BEB8864A1AA59CE01252CE5FE0 }}
           package: react.zip
-      
+    steps2:  
       - name: Delete zip file
-         run: rm react.zip
+        run: rm react.zip
