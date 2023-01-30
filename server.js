@@ -95,7 +95,7 @@ const create = async () => {
           await receivers.map((receiver) => {
             if (!(receiver in users)) {
               console.log("Reciver is offline  : ", receiver);
-              notifications.push(createdMessage);
+              // notifications.push(createdMessage);
               UserModel.findById(receiver, async (err, recivingUser) => {
                 if (err) {
                   console.log("Error in getting user :", err);
@@ -104,7 +104,7 @@ const create = async () => {
                     to: recivingUser.email,
                     subject: "New message in chat",
                     html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-                    <a href="http://raincomputing.azurewebsites.net/chat-rc">View Message</a></div>`,
+                    <a href="http://raincomputing.net/chat-rc">View Message</a></div>`,
                   };
                   const mailResult = await sendMail(mailOptions);
                   console.log("Mail response", mailResult);
