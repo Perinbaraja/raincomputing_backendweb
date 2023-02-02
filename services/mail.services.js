@@ -19,31 +19,31 @@ const sendMail = async (mailOptions) => {
     //   text: token,
     // };
 
-    // transporter.sendMail(mailOptions, (err, info) => {
-    //   if (err) {
-    //     console.log(err);
-    //     resolve(false);
-    //   } else {
-    //     // resolve(info.response);
-    //     console.log("Email sent: " + info.response);
-    //     resolve(true);
-    //   }
-    // });
-
-    cron.schedule("30 22 * * *", function () {
-      console.log("---------------------");
-      console.log("Running Cron Process");
-      // Delivering mail with sendMail method
-      transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-          console.log(err);
-          resolve(false);
-        } else {
-          console.log("Email sent: " + info.response);
-          resolve(true);
-        }
-      });
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.log(err);
+        resolve(false);
+      } else {
+        // resolve(info.response);
+        console.log("Email sent: " + info.response);
+        resolve(true);
+      }
     });
+
+    // cron.schedule("30 22 * * *", function () {
+    //   console.log("---------------------");
+    //   console.log("Running Cron Process");
+    //   // Delivering mail with sendMail method
+    //   transporter.sendMail(mailOptions, (err, info) => {
+    //     if (err) {
+    //       console.log(err);
+    //       resolve(false);
+    //     } else {
+    //       console.log("Email sent: " + info.response);
+    //       resolve(true);
+    //     }
+    //   });
+    // });
   });
 };
 
