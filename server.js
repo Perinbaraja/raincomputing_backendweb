@@ -3,6 +3,7 @@ const _ = require("lodash");
 const multer = require("multer");
 const crypto = require("crypto");
 const path = require("path");
+const cron = require("node-cron");
 const { GridFsStorage } = require("multer-gridfs-storage");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
@@ -59,10 +60,13 @@ const create = async () => {
   //Users object to save online users
   let users = {};
   let notifications = [];
+  let offlineUsers = [];
   //Socket methods
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.id;
     console.log(`User Connected: ${userId}`);
+    //Removing User from offline users 
+    offlineUsers=offlineUsers.filter(user =>  user !== userId)
     socket.join(userId);
 
     // CHECK IS USER EXHIST
@@ -96,20 +100,9 @@ const create = async () => {
             if (!(receiver in users)) {
               console.log("Reciver is offline  : ", receiver);
               // notifications.push(createdMessage);
-              UserModel.findById(receiver, async (err, recivingUser) => {
-                if (err) {
-                  console.log("Error in getting user :", err);
-                } else {
-                  const mailOptions = {
-                    to: recivingUser.email,
-                    subject: "New message in chat",
-                    html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
-                    <a href="http://raincomputing.net/chat-rc">View Message</a></div>`,
-                  };
-                  const mailResult = await sendMail(mailOptions);
-                  console.log("Mail response", mailResult);
-                }
-              });
+              if(!offlineUsers?.includes(receiver)){
+                offlineUsers.push(receiver)
+              }
             } else {
               console.log("Reciver is online  : ", receiver);
               socket.broadcast.to(receiver).emit("r_m", createdMessage);
@@ -234,6 +227,35 @@ const create = async () => {
       console.log("user disconnected", reason);
     });
   });
+
+  //Scheduling msg 
+  cron.schedule("30 22 * * *", ()=>{
+    console.log("offline Users : ",offlineUsers)
+    if(offlineUsers?.length>0){
+      offlineUsers?.map(async (receiver) =>{
+        UserModel.findById(receiver, async (err, recivingUser) => {
+          if (err) {
+            console.log("Error in getting user :", err);
+          } else {
+            const mailOptions = {
+              to: recivingUser.email,
+              subject: "New message in chat",
+              html: `<div><h3> Hello ${recivingUser.firstname}  ${recivingUser.lastname},</h3><p>You have a New message</p>
+              <a href="http://raincomputing.net/chat-rc">View Message</a></div>`,
+            };
+            const mailResult = await sendMail(mailOptions);
+            console.log("Mail response", mailResult);
+     
+          }
+        });
+    offlineUsers=offlineUsers.filter(user =>  user !== receiver) 
+      } )
+
+    }
+   
+    
+  })
+
 
   //Attachment uploading
   let gfs;

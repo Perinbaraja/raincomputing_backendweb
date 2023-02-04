@@ -1,7 +1,7 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const config = require("../config");
-const cron = require("node-cron");
+
 
 const sendMail = async (mailOptions) => {
   return new Promise((resolve, reject) => {
