@@ -32,7 +32,7 @@ const messageSchema = mongoose.Schema(
         createdAt: { type: Date, default: new Date() },
         aflag:{
           type:Boolean,
-          default:false 
+          default:true
         }
       },
     ],
