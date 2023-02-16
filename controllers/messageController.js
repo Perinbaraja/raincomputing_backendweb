@@ -135,7 +135,6 @@ const DELETEMSG = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("Delete Message error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
@@ -196,7 +195,6 @@ const GETFILES = async (req, res) => {
 const MAIL_CHAT = async (req, res) => {
   try {
     const { mail, chatRoomId, caseName, groupName } = req.body;
-    console.log("chatRoomId : " + chatRoomId);
     const chatMessages = await Message.find({
       groupId:chatRoomId,
     }).populate({
@@ -267,7 +265,6 @@ const MAIL_CHAT = async (req, res) => {
     const mailSent = await sendMail(mailOptions);
     res.json({ success: true ,mailSent});
   } catch (err) {
-    console.log("mailChat err: ", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
@@ -323,6 +320,24 @@ return res.json({success: true, message: pinnedMessage})
      return res.json({msg: err || config.DEFAULT_RES_ERROR}) 
     }
 }
+const GETPINMESSAGES = async (req, res) => {
+  try {
+    const { groupId } = req.body;
+    const pinMessages = await Message.find({
+      groupId,
+      isPinned: true,
+    });
+    if (pinMessages)
+      return res.json({
+        success: true,
+        pinMessages,
+      });
+  } catch (err) {
+    console.log(err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
 module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
@@ -335,4 +350,5 @@ module.exports.messageController = {
   GETGROUPBYNAMEID,
   PINNEDMESSAGE,
   FILENOTES,
+  GETPINMESSAGES,
 };
