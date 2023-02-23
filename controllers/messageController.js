@@ -57,8 +57,8 @@ const REPLYMESSAGE = async (req, res) => {
       replyMsg: msg,
     };
     const replyMessage = await Message.findByIdAndUpdate(id, {
-      $push: { replies: replyQuery },
-    });
+      $push: { replies: replyQuery }, 
+    },{new:true});
     if (replyMessage) return res.json({ success: true, replyMessage });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
