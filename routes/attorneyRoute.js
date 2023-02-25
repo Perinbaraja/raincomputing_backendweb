@@ -68,7 +68,7 @@ router.post("/getByUserId", async (req, res) => {
     RegAttorneyModel.findOne({ regUser: userID })
       .populate({
         path: "regUser",
-        select: "firstname lastname email",
+        select: "firstname lastname email profilePic",
       })
       .exec((err, isAttorney) => {
         if (err) {
@@ -91,7 +91,7 @@ router.post("/getAllAttorney",async (req,res) =>{
   const {attorneyID} = req.body;
   RegAttorneyModel.find({ _id: { $ne: attorneyID },status: "approved" }).populate({
     path: "regUser",
-    select: "firstname lastname email",
+    select: "firstname lastname email profilePic",
   }) .exec((err, attorneys) => {
     if (err) {
       return res.json({

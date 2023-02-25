@@ -312,7 +312,7 @@ const GETGROUPBYNAMEID=async(req,res) =>{
 const PINNEDMESSAGE = async(req, res) => {
   try{
     const { Id } = req.body;
-const pinnedMessage = await Message.findByIdAndUpdate(Id,{isPinned: true});
+const pinnedMessage = await Message.findByIdAndUpdate(Id,{isPinned: true},{new:true});
 if(pinnedMessage)
 return res.json({success: true, message: pinnedMessage})
   }
