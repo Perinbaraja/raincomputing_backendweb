@@ -5,7 +5,7 @@ const RegAttorneySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "UserModel",
   },
-  barNumber: {
+  registerNumber: {
     type: String,
     required: true,
   },
@@ -13,8 +13,28 @@ const RegAttorneySchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  address: {
+  firm: {
     type: String,
+    required: true,
+  },
+  bio: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  postalCode: {
+    type: Number,
     required: true,
   },
   aflag: {

@@ -8,7 +8,7 @@ router.get("/", (req, res) => res.send(" Attorney Route"));
 router.post("/register", async (req, res) => {
   try {
     //De-Struturing values from request body
-    const { userID, barNumber, phoneNumber, address, status } = req.body;
+    const { userID, registerNumber, phoneNumber,firm,bio,country,state,city,postalCode, status } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
     //Executes is user found
@@ -16,17 +16,22 @@ router.post("/register", async (req, res) => {
       //Creating query to registering user
       const regAttorneyQuery = {
         regUser: userID,
-        barNumber: barNumber,
+        registerNumber: registerNumber,
         phoneNumber,
-        address,
+        firm,
+        bio,
+        country,
+        state,
+        city,
+        postalCode,
         status,
         aflag:true,
       };
       const isAlreadyRegistered = await RegAttorneyModel.find({
-        barNumber,
+        registerNumber,
       });
       if (isAlreadyRegistered.length > 0) {
-        return res.json({ msg: `${barNumber} already exist` });
+        return res.json({ msg: `${registerNumber} already exist` });
       } else {
         const regAttorney = await RegAttorneyModel.create(regAttorneyQuery);
         if (regAttorney) {
