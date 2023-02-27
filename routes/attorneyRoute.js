@@ -113,10 +113,8 @@ router.post("/getAllAttorney",async (req,res) =>{
 
 router.post("/regAttorneyDetails", async (req, res) => {
   const { objectId } = req.body;
-  RegAttorneyModel.findById(objectId).populate({
-    path: "regUser",
-    select: "firstname lastname email profilePic",
-  }) .exec((err, regAttorneydetails) => {
+  // console.log("objectId" + objectId);
+  RegAttorneyModel.findById(objectId, (err, regAttorneydetails) => {
     if (err) {
       res.json({
         msg: "Oops Error occurred!",
