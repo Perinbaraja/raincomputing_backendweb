@@ -8,7 +8,7 @@ router.get("/", (req, res) => res.send(" Attorney Route"));
 router.post("/register", async (req, res) => {
   try {
     //De-Struturing values from request body
-    const { userID, registerNumber, phoneNumber,firm,bio,country,state,city,postalCode, status } = req.body;
+    const { userID, registerNumber, phoneNumber,firm,bio,address,country,state,city,postalCode, status } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
     //Executes is user found
@@ -20,6 +20,7 @@ router.post("/register", async (req, res) => {
         phoneNumber,
         firm,
         bio,
+        address,
         country,
         state,
         city,
@@ -111,22 +112,25 @@ router.post("/getAllAttorney",async (req,res) =>{
   });
 })
 
-router.post("/regAttorneyDetails", async (req, res) => {
-  const { objectId } = req.body;
-  // console.log("objectId" + objectId);
-  RegAttorneyModel.findById(objectId, (err, regAttorneydetails) => {
+
+router.post("/regAttorneyDetails",async (req, res) => {
+  const { id } = req.body;
+  RegAttorneyModel.findById({_id: id})
+  .populate({
+    path: "regUser",
+    select: "firstname lastname email profilePic",
+  })
+  .exec((err,regAttorneydetails)=>{
     if (err) {
-      res.json({
-        msg: "Oops Error occurred!",
-        error: err,
+      return res.json({
+        msg: err,
       });
     } else {
-      res.json({
+      return res.json({
         success: true,
         attorney: regAttorneydetails,
       });
     }
-  });
-});
-
+  })
+})
 module.exports = router;
