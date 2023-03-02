@@ -6,7 +6,6 @@ const { hashValidator } = require("../helpers/Hashing");
 const { JWTtokenGenerator } = require("../helpers/token");
 const ActiveSessionModel = require("../models/activeSession");
 const { isAuthenticated } = require("../helpers/safeRoutes");
-const AdminModel = require("../models/AdminModel");
 const FirmModel = require("../models/FirmModel");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
 const userModel = require("../models/userModel");
