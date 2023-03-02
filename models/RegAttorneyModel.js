@@ -15,32 +15,25 @@ const RegAttorneySchema = mongoose.Schema({
   },
   firm: {
     type: String,
-    required: true,
   },
 
   bio: {
     type: String,
-    required: true,
   },
   address:{
     type: String,
-    required: true,
   },
   country: {
     type: String,
-    required: true,
   },
   state: {
     type: String,
-    required: true,
   },
   city: {
     type: String,
-    required: true,
   },
   postalCode: {
     type: Number,
-    required: true,
   },
   aflag: {
     type: Boolean,
