@@ -13,12 +13,9 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const server = http.createServer(app);
-const Chat = require("./models/ChatModel");
 const config = require("./config");
-const ChatRooms = require("./models/ChatRoomModel");
 const UserModel = require("./models/userModel");
 const { sendMail } = require("./services/mail.services");
-const Attachments = require("./models/AttachmentModel");
 const Message = require("./models/Message");
 
 const io = new Server(server, {

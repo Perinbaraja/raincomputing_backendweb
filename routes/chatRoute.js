@@ -1,6 +1,4 @@
 const express = require("express");
-const ChatRooms = require("../models/ChatRoomModel");
-const Chat = require("../models/ChatModel");
 const router = express.Router();
 
 router.get("/", (req, res) => res.send("Chat Route"));

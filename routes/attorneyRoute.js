@@ -1,6 +1,7 @@
 const express = require("express");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
 const UserModel = require("../models/userModel");
+const { sendMail } = require("../services/mail.services");
 const router = express.Router();
 
 router.get("/", (req, res) => res.send(" Attorney Route"));
@@ -8,7 +9,19 @@ router.get("/", (req, res) => res.send(" Attorney Route"));
 router.post("/register", async (req, res) => {
   try {
     //De-Struturing values from request body
-    const { userID, registerNumber, phoneNumber,firm,bio,country,state,city,postalCode, status } = req.body;
+    const {
+      userID,
+      registerNumber,
+      phoneNumber,
+      firm,
+      bio,
+      address,
+      country,
+      state,
+      city,
+      postalCode,
+      status,
+    } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
     //Executes is user found
@@ -20,12 +33,13 @@ router.post("/register", async (req, res) => {
         phoneNumber,
         firm,
         bio,
+        address,
         country,
         state,
         city,
         postalCode,
         status,
-        aflag:true,
+        aflag: true,
       };
       const isAlreadyRegistered = await RegAttorneyModel.find({
         registerNumber,
@@ -48,7 +62,7 @@ router.post("/register", async (req, res) => {
               email: updatedUser.email,
               attorneyStatus: status,
               profilePic: updatedUser.profilePic,
-              aflag:true,
+              aflag: true,
             });
           } else {
             return res.json({
@@ -92,41 +106,57 @@ router.post("/getByUserId", async (req, res) => {
   }
 });
 
-router.post("/getAllAttorney",async (req,res) =>{
-  const {attorneyID} = req.body;
-  RegAttorneyModel.find({ _id: { $ne: attorneyID },status: "approved" }).populate({
-    path: "regUser",
-    select: "firstname lastname email profilePic",
-  }) .exec((err, attorneys) => {
-    if (err) {
-      return res.json({
-        msg: err,
-      });
-    } else {
-      return res.json({
-        success: true,
-        attorneys,
-      });
-    }
-  });
-})
-
-router.post("/regAttorneyDetails", async (req, res) => {
-  const { objectId } = req.body;
-  // console.log("objectId" + objectId);
-  RegAttorneyModel.findById(objectId, (err, regAttorneydetails) => {
-    if (err) {
-      res.json({
-        msg: "Oops Error occurred!",
-        error: err,
-      });
-    } else {
-      res.json({
-        success: true,
-        attorney: regAttorneydetails,
-      });
-    }
-  });
+router.post("/getAllAttorney", async (req, res) => {
+  const { attorneyID } = req.body;
+  RegAttorneyModel.find({ _id: { $ne: attorneyID }, status: "approved" })
+    .populate({
+      path: "regUser",
+      select: "firstname lastname email profilePic",
+    })
+    .exec((err, attorneys) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else {
+        return res.json({
+          success: true,
+          attorneys,
+        });
+      }
+    });
 });
 
+router.post("/regAttorneyDetails", async (req, res) => {
+
+  const { id } = req.body;
+  RegAttorneyModel.findById({ _id: id })
+    .populate({
+      path: "regUser",
+      select: "firstname lastname email profilePic",
+    })
+    .exec((err, regAttorneydetails) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else {
+        return res.json({
+          success: true,
+          attorney: regAttorneydetails,
+        });
+      }
+    });
+});
+
+router.post("/inviteAttorney", async (req, res) => {
+  const mailOptions = {
+    to: "dk18026@gmail.com",
+    subject: "Invitation In Rain Computing",
+    html: `<div><h3> Hello ,This Is Rain Computing Invite Message</h3>
+    <a href="http://raincomputing.net/login">View Message</a></div>`,
+  };
+  const mailSent = await sendMail(mailOptions);
+  res.json({ success: true, mailSent });
+});
 module.exports = router;
