@@ -85,29 +85,46 @@ const create = async () => {
         (n) => !n?.receivers?.includes(userId)
       );
     }
-
     socket.on("s_m", async (payload) => {
       try {
-        const { receivers } = payload;
+        const { receivers } = payload || {};
 
+    
+        if (!receivers || !Array.isArray(receivers)) {
+          throw new Error("Invalid payload format: receivers property is missing or not an array.");
+        }
+    
         const createdMessage = await Message.create(payload);
         if (createdMessage) {
           socket.emit("s_s", createdMessage);
-          await receivers.map((receiver) => {
+          
+          const offlineUsers = [];
+          await Promise.all(receivers.map(async (receiver) => {
             if (!(receiver in users)) {
-              console.log("Reciver is offline  : ", receiver);
-              // notifications.push(createdMessage);
-              if(!offlineUsers?.includes(receiver)){
-                offlineUsers.push(receiver)
-              }
+              
+              console.log("Receiver is offline: ", receiver);
+              offlineUsers.push(receiver);
             } else {
-              console.log("Reciver is online  : ", receiver);
+              console.log("Receiver is online: ", receiver);
               socket.broadcast.to(receiver).emit("r_m", createdMessage);
             }
-          });
+          }));
+    
+          if (offlineUsers.length > 0) {
+            const uniqueOfflineReceivers = [...new Set(offlineUsers)];
+            notifications.push(
+            createdMessage,
+              
+           
+            );
+            
+
+            console.log(`Sent notification to ${uniqueOfflineReceivers.length} offline users: `, { message: createdMessage, receivers: uniqueOfflineReceivers });
+
+          }
         }
       } catch (error) {
-        console.log("error while emit msg :", error);
+        console.log("Error while emitting message: ", error);
       }
     });
 
