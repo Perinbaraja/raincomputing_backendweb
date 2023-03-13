@@ -10,6 +10,10 @@ const RemainderSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserModel",
+    },
     title: {
       type: String,
     },

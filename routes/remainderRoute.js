@@ -7,11 +7,11 @@ router.get("/", (req, res) => res.send(" Remainder Route"));
 
 router.post("/create", async (req, res) => {
   try {
-    const { groupId,messageId,title,date,time } = req.body;
+    const { groupId,messageId,title,date,time,userId } = req.body;
     const isReminderExist = await RemainderModel.findOne({messageId:messageId});
     if(!isReminderExist)  {
       RemainderModel.create(
-        ({groupId, messageId,title,date,time}),
+        ({groupId,userId, messageId,title,date,time}),
         (err, reminder) => {
           if (err) {
             return res.json({
@@ -84,19 +84,39 @@ router.post("/create", async (req, res) => {
 router.post("/getreminder", async (req, res) => {
   try {
     const { currentUserID } = req.body;
-    const reminders =await RemainderModel.find({isActive:true}).populate({
+    const reminders =await RemainderModel.find({isActive:true, userId: { $ne: currentUserID }}).populate({
       path: "groupId",
-      // match:{groupMembers: {
-      //   $elemMatch: {
-      //     id: currentUserID,
-      //     isActive: true
-      //   }
-      // }},
       select: "_id groupMembers"
     }, 
     ) 
     .exec();
-    // console.log("")
+    const filteredReminders = reminders.filter(reminder => {
+      const groupMembers = reminder.groupId.groupMembers;
+      const member = groupMembers.find(member => {
+        return member.id.toString() === currentUserID.toString() && member.isActive 
+      }  ,
+      );
+      return member;   
+         
+    });
+    return res.json({ success: true, reminders: filteredReminders,
+  
+    });
+  } catch (err) {
+    console.log("err: ",err)
+    return res.json({ msg: err });
+  }
+
+});
+router.post("/getreminderself", async (req, res) => {
+  try {
+    const { currentUserID } = req.body;
+    const reminders =await RemainderModel.find({isActive:true ,userId:currentUserID}).populate({
+      path: "groupId",
+      select: "_id groupMembers"
+    }, 
+    ) 
+    .exec();
     const filteredReminders = reminders.filter(reminder => {
    
       const groupMembers = reminder.groupId.groupMembers;
@@ -117,47 +137,6 @@ router.post("/getreminder", async (req, res) => {
   }
 
 });
-
-// router.post("/getreminder", async (req, res) => {
-//   try {
-//     const { currentUserID } = req.body;
-
-//     const groups = await Group.find({
-//       groupMembers: {
-//         $elemMatch: {
-//           id: currentUserID,
-//           isActive: true
-//         }
-//       }
-//     }, "_id");
-    
-
-//     const currentUserGroupIDs = groups.map(group => group?._id);
-
-//     const reminders = await RemainderModel.find({
-//       "messageId.groupId": { $in: currentUserGroupIDs },
-//       "messageId.receivers": currentUserID
-//     })
-    
-//     .populate({
-//       path: "messageId",
-//       select: "caseId groupId sender receivers messageData"
-//     })
-//     .exec();    
-//     console.log("currentUserGroupIDs:", {$in: currentUserGroupIDs})
-
- 
-//     return res.json({
-//       success: true,
-//       reminder: reminders
-//     })
-    
-
-//   } catch (err) {
-//     return res.json({ msg: "error" });
-//   }
-// });
-
 
 
 

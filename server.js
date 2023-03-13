@@ -62,8 +62,8 @@ const create = async () => {
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.id;
     console.log(`User Connected: ${userId}`);
-    //Removing User from offline users 
-    offlineUsers=offlineUsers.filter(user =>  user !== userId)
+    //Removing User from offline users
+    offlineUsers = offlineUsers.filter((user) => user !== userId);
     socket.join(userId);
 
     // CHECK IS USER EXHIST
@@ -89,38 +89,32 @@ const create = async () => {
       try {
         const { receivers } = payload || {};
 
-    
         if (!receivers || !Array.isArray(receivers)) {
-          throw new Error("Invalid payload format: receivers property is missing or not an array.");
+          throw new Error(
+            "Invalid payload format: receivers property is missing or not an array."
+          );
         }
-    
+
         const createdMessage = await Message.create(payload);
         if (createdMessage) {
           socket.emit("s_s", createdMessage);
-          
+
           const offlineUsers = [];
-          await Promise.all(receivers.map(async (receiver) => {
-            if (!(receiver in users)) {
-              
-              console.log("Receiver is offline: ", receiver);
-              offlineUsers.push(receiver);
-            } else {
-              console.log("Receiver is online: ", receiver);
-              socket.broadcast.to(receiver).emit("r_m", createdMessage);
-            }
-          }));
-    
+          await Promise.all(
+            receivers.map(async (receiver) => {
+              if (!(receiver in users)) {
+                console.log("Receiver is offline: ", receiver);
+                offlineUsers.push(receiver);
+              } else {
+                console.log("Receiver is online: ", receiver);
+                socket.broadcast.to(receiver).emit("r_m", createdMessage);
+              }
+            })
+          );
+
           if (offlineUsers.length > 0) {
             const uniqueOfflineReceivers = [...new Set(offlineUsers)];
-            notifications.push(
-            createdMessage,
-              
-           
-            );
-            
-
-            console.log(`Sent notification to ${uniqueOfflineReceivers.length} offline users: `, { message: createdMessage, receivers: uniqueOfflineReceivers });
-
+            notifications.push(createdMessage);
           }
         }
       } catch (error) {
@@ -242,11 +236,10 @@ const create = async () => {
     });
   });
 
-  //Scheduling msg 
-  cron.schedule("30 22 * * *", ()=>{
-    console.log("offline Users : ",offlineUsers)
-    if(offlineUsers?.length>0){
-      offlineUsers?.map(async (receiver) =>{
+  //Scheduling msg
+  cron.schedule("30 22 * * *", () => {
+    if (offlineUsers?.length > 0) {
+      offlineUsers?.map(async (receiver) => {
         UserModel.findById(receiver, async (err, recivingUser) => {
           if (err) {
             console.log("Error in getting user :", err);
@@ -259,17 +252,12 @@ const create = async () => {
             };
             const mailResult = await sendMail(mailOptions);
             console.log("Mail response", mailResult);
-     
           }
         });
-    offlineUsers=offlineUsers.filter(user =>  user !== receiver) 
-      } )
-
+        offlineUsers = offlineUsers.filter((user) => user !== receiver);
+      });
     }
-   
-    
-  })
-
+  });
 
   //Attachment uploading
   let gfs;
