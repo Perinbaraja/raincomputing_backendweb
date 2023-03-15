@@ -92,6 +92,10 @@ router.post("/getreminder", async (req, res) => {
         path: "groupId",
         select: "_id groupMembers",
       })
+      .populate({
+        path:"messageId",
+        select:"_id messageData"
+      },)
       .exec();
     const filteredReminders = reminders.filter((reminder) => {
       const groupMembers = reminder.groupId.groupMembers;
