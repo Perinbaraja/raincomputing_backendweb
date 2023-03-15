@@ -7,11 +7,13 @@ router.get("/", (req, res) => res.send(" Remainder Route"));
 
 router.post("/create", async (req, res) => {
   try {
-    const { groupId,messageId,title,date,time,userId } = req.body;
-    const isReminderExist = await RemainderModel.findOne({messageId:messageId});
-    if(!isReminderExist)  {
+    const { groupId, messageId, title, date, time, userId } = req.body;
+    const isReminderExist = await RemainderModel.findOne({
+      messageId: messageId,
+    });
+    if (!isReminderExist) {
       RemainderModel.create(
-        ({groupId,userId, messageId,title,date,time}),
+        { groupId, userId, messageId, title, date, time },
         (err, reminder) => {
           if (err) {
             return res.json({
@@ -25,13 +27,11 @@ router.post("/create", async (req, res) => {
           }
         }
       );
-    }
-   else {
+    } else {
       return res.json({
         msg: "Already Reminder Exist",
       });
-    } 
-  
+    }
   } catch (err) {
     return res.json({ msg: err?.name || err });
   }
@@ -84,62 +84,70 @@ router.post("/create", async (req, res) => {
 router.post("/getreminder", async (req, res) => {
   try {
     const { currentUserID } = req.body;
-    const reminders =await RemainderModel.find({isActive:true, userId: { $ne: currentUserID }}).populate({
-      path: "groupId",
-      select: "_id groupMembers"
-    }, 
-    ) 
-    .exec();
-    const filteredReminders = reminders.filter(reminder => {
+    const reminders = await RemainderModel.find({
+      isActive: true,
+      userId: { $ne: currentUserID },
+    })
+      .populate({
+        path: "groupId",
+        select: "_id groupMembers",
+      })
+      .exec();
+    const filteredReminders = reminders.filter((reminder) => {
       const groupMembers = reminder.groupId.groupMembers;
-      const member = groupMembers.find(member => {
-        return member.id.toString() === currentUserID.toString() && member.isActive 
-      }  ,
-      );
-      return member;   
-         
+      const member = groupMembers.find((member) => {
+        return (
+          member.id.toString() === currentUserID.toString() && member.isActive
+        );
+      });
+      return member;
     });
-    return res.json({ success: true, reminders: filteredReminders,
-  
-    });
+    return res.json({ success: true, reminders: filteredReminders });
   } catch (err) {
-    console.log("err: ",err)
+    console.log("err: ", err);
     return res.json({ msg: err });
   }
-
 });
 router.post("/getreminderself", async (req, res) => {
   try {
     const { currentUserID } = req.body;
-    const reminders =await RemainderModel.find({isActive:true ,userId:currentUserID}).populate({
-      path: "groupId",
-      select: "_id groupMembers"
-    }, 
-    ) 
-    .exec();
-    const filteredReminders = reminders.filter(reminder => {
-   
+    const reminders = await RemainderModel.find({
+      isActive: true,
+      userId: currentUserID,
+    })
+      .populate({
+        path: "groupId",
+        select: "_id groupMembers",
+      })
+      .exec();
+    const filteredReminders = reminders.filter((reminder) => {
       const groupMembers = reminder.groupId.groupMembers;
-      const member = groupMembers.find(member => {
-        return member.id.toString() === currentUserID.toString() && member.isActive;
-        
-      }  
-      );
-      return member;   
-         
+      const member = groupMembers.find((member) => {
+        return (
+          member.id.toString() === currentUserID.toString() && member.isActive
+        );
+      });
+      return member;
     });
-    return res.json({ success: true, reminders: filteredReminders,
-  
-    });
+    return res.json({ success: true, reminders: filteredReminders });
   } catch (err) {
-    console.log("err: ",err)
+    console.log("err: ", err);
     return res.json({ msg: err });
   }
-
 });
 
+router.put("/removeReminder", async (req, res) => {
+  const { reminderId } = req.body;
+  const removeReminder = await RemainderModel.findOneAndDelete({
+    _id: reminderId,
+  });
 
-
-
+  if (!removeReminder) {
+    res.status(404);
+  } else {
+    res.json({ success: true, removeReminder });
+  }
+  
+});
 
 module.exports = router;
