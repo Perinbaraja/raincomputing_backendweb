@@ -7,13 +7,24 @@ router.get("/", (req, res) => res.send(" Remainder Route"));
 
 router.post("/create", async (req, res) => {
   try {
-    const { groupId, messageId, title, date, time, userId } = req.body;
+    const { groupId, messageId, title, userId,date,time,selectedMembers} = req.body;
     const isReminderExist = await RemainderModel.findOne({
       messageId: messageId,
+      groupId,
     });
+    const struturedMembers = selectedMembers.map((m) => ({ id: m, addedBy: userId }));
     if (!isReminderExist) {
+      const remindersQuery={
+        groupId,  
+        userId,
+        messageId,
+        title,
+        date,
+        time,
+        selectedMembers:struturedMembers,
+      }
       RemainderModel.create(
-        { groupId, userId, messageId, title, date, time },
+        remindersQuery,
         (err, reminder) => {
           if (err) {
             return res.json({
@@ -36,82 +47,28 @@ router.post("/create", async (req, res) => {
     return res.json({ msg: err?.name || err });
   }
 });
-// router.post("/getreminder", async (req, res) => {
-//   try {
-//     const { currentUserID,currentUserGroupID  } = req.body;
 
-//     RemainderModel.find({"messageId.receivers": currentUserID, "messageId.groupId": currentUserGroupID,})
-//       .populate({
-//         path: "messageId",
-//         select: "caseId groupId sender receivers messageData",
-//       })
-//       .exec((err, list) => {
-//         if (err) {
-//           return res.json({
-//             msg: err,
-//           });
-//         } else {
-//           return res.json({
-//             success: true,
-//             reminder: list,
-//           });
-//         }
-//       });
-//   } catch (err) {
-//     return res.json({ msg: "error" });
-//   }
-// });
-
-// router.post("/getreminder", async (req, res) => {
-//   try {
-//     const { currentUserID } = req.body;
-//     const reminders =await RemainderModel.find({isActive:true}).populate({
-//       path: "groupId",
-//       match:{groupMembers: {
-//         $elemMatch: {
-//           id: currentUserID,
-//           isActive: true
-//         }
-//       }},
-//       select: "_id "
-//     })
-//     .exec();
-//       return res.json({ success: true, reminders });
-//   } catch (err) {
-//     return res.json({ msg: err });
-//   }
-// });
 router.post("/getreminder", async (req, res) => {
   try {
     const { currentUserID } = req.body;
     const reminders = await RemainderModel.find({
       isActive: true,
       userId: { $ne: currentUserID },
+      selectedMembers: { $elemMatch: { id: currentUserID } }
+
     })
-      .populate({
-        path: "groupId",
-        select: "_id groupMembers",
-      })
       .populate({
         path:"messageId",
         select:"_id messageData"
-      },)
+      })
       .exec();
-    const filteredReminders = reminders.filter((reminder) => {
-      const groupMembers = reminder.groupId.groupMembers;
-      const member = groupMembers.find((member) => {
-        return (
-          member.id.toString() === currentUserID.toString() && member.isActive
-        );
-      });
-      return member;
-    });
-    return res.json({ success: true, reminders: filteredReminders });
+    return res.json({ success: true, reminders});
   } catch (err) {
     console.log("err: ", err);
     return res.json({ msg: err });
   }
 });
+
 router.post("/getreminderself", async (req, res) => {
   try {
     const { currentUserID } = req.body;

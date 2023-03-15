@@ -10,6 +10,19 @@ const RemainderSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
     },
+    selectedMembers:[
+      {
+        _id: false,
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "UserModel",
+        },
+        addedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "UserModel",
+        },
+      }
+    ],
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "UserModel",
