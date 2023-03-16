@@ -125,14 +125,14 @@ router.post("/getreminder", async (req, res) => {
     // Loop through each reminder for selected member and schedule a reminder notification
     reminders.forEach((reminder) => {
       const scheduledTime = moment.tz(reminder.scheduledTime, "Asia/Kolkata"); // Set the time zone of the scheduled time
-      console.log("scheduledTime:", scheduledTime);
+      // console.log("scheduledTime:", scheduledTime);
       const notificationTime = scheduledTime.toDate();
-      console.log("notificationTime:", notificationTime);
+      // console.log("notificationTime:", notificationTime);
       // Schedule the reminder notification for the user's notification time
       schedule.scheduleJob(notificationTime, () => {
         const localTime = scheduledTime.clone().tz(moment.tz.guess()); // Convert the scheduled time to the local time zone of the user
         const formattedTime = localTime.format("h:mm a"); // Format the time as "5:15 pm"
-        console.log(`Reminder for ${reminder.title} at ${formattedTime}`);
+        // console.log(`Reminder for ${reminder.title} at ${formattedTime}`);
         // TODO: Send the notification to the user
         const notificationData = {
           title: `Reminder: ${reminder.title}`,
@@ -140,7 +140,7 @@ router.post("/getreminder", async (req, res) => {
           recipient: currentUserID,
         };
 
-        console.log(`Notification scheduled for ${formattedTime} with data:`, notificationData);
+        // console.log(`Notification scheduled for ${formattedTime} with data:`, notificationData);
       });
     });
 
@@ -168,10 +168,10 @@ router.post("/getreminder", async (req, res) => {
       responseData.nextReminder = nextReminder;
     }
 
-    console.log("responseData", responseData);
+    // console.log("responseData", responseData);
     return res.json(responseData);
   } catch (err) {
-    console.log("err: ", err);
+    // console.log("err: ", err);
     return res.json({ msg: err });
   }
 });
@@ -201,7 +201,7 @@ router.post("/getreminderself", async (req, res) => {
     });
     return res.json({ success: true, reminders: filteredReminders });
   } catch (err) {
-    console.log("err: ", err);
+    // console.log("err: ", err);
     return res.json({ msg: err });
   }
 });
