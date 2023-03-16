@@ -118,7 +118,20 @@ const ADD_ADMIN = async (req, res) => {
     const { admin, caseId } = req.body;
     const updatedCase = await Case.findByIdAndUpdate(caseId, {
       $push: { admins: admin },
-    });
+    },{new: true});
+    if (updatedCase) {
+      return res.json({ success: true, updatedCase });
+    }
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+const REMOVE_ADMIN = async (req, res) => {
+  try {
+    const { admin, caseId } = req.body;
+    const updatedCase = await Case.findByIdAndUpdate(caseId, {
+      $pull: { admins: admin },
+    },{new: true});
     if (updatedCase) {
       return res.json({ success: true, updatedCase });
     }
@@ -132,4 +145,5 @@ module.exports.caseController = {
   GETBYUSERID,
   UPDATE_CASE,
   ADD_ADMIN,
+  REMOVE_ADMIN
 };
