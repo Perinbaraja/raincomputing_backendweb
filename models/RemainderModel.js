@@ -10,6 +10,10 @@ const RemainderSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
     },
+    caseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Case",
+    },
     selectedMembers:[
       {
         _id: false,
@@ -42,7 +46,7 @@ const RemainderSchema = mongoose.Schema(
     },
     scheduledTime: {
       type: Date,
-      required: true,
+      // required: true,
     },
   },
   { timestamps: true }
