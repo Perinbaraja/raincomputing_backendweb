@@ -12,26 +12,22 @@ router.post("/create", async (req, res) => {
     const {
       groupId,
       messageId,
+      caseId,
       title,
       userId,
       scheduledTime,
       selectedMembers,
     } = req.body;
 
-    const isReminderExist = await RemainderModel.findOne({
-      messageId: messageId,
-      groupId,
-    });
-
     const struturedMembers = selectedMembers.map((m) => ({
       id: m,
       addedBy: userId,
     }));
 
-    if (!isReminderExist) {
       const remindersQuery = {
         groupId,
         userId,
+        caseId,
         messageId,
         title,
         scheduledTime, // Use scheduledTime instead of date and time
@@ -50,64 +46,50 @@ router.post("/create", async (req, res) => {
           });
         }
       });
-    } else {
-      return res.json({
-        msg: "Already Reminder Exist",
-      });
-    }
+    
+    
   } catch (err) {
     return res.json({ msg: err?.name || err });
   }
 });
 
-// router.post("/getreminder", async (req, res) => {
-//   try {
-//     const { currentUserID } = req.body;
-//     const reminders = await RemainderModel.find({
-//       isActive: true,
-//       userId: { $ne: currentUserID },
-//       selectedMembers: { $elemMatch: { id: currentUserID } }
-//     })
-//       .populate({
-//         path:"messageId",
-//         select:"_id messageData"
-//       })
-//       .exec();
-//       console.log("reminders",reminders);
-//     // Loop through each reminder for selected member and schedule a reminder notification
-//     reminders.forEach((reminder) => {
-//   //     const dateStr = moment(reminder.scheduledTime, 'YYYY-MM-DD').format('YYYY-MM-DD');
-//   // const timeStr = moment(reminder.scheduledTime, 'HH:mm:ss').format('HH:mm:ss');
-//       // const dateStr = moment(reminder.date, 'YYYY-MM-DD').format('YYYY-MM-DD');
-//       // const timeStr = moment(reminder.time, 'HH:mm').format('HH:mm');
-//       const scheduledTime = reminder?.scheduledTime;
-// console.log('scheduledTime:', scheduledTime);
-// const notificationTime = moment(scheduledTime, moment.ISO_8601).toDate();
-// console.log('notificationTime:', notificationTime);
-//       // const notificationTime = moment(`${reminder?.scheduledTime}`, moment.ISO_8601).toDate();
-//       // ... rest of the code
 
-//     // Combine the date and time fields to create the notification time using Moment.js
-//       // Schedule the reminder notification for the user's notification time
-//       schedule.scheduleJob(notificationTime, () => {
-//         console.log(`Reminder for ${reminder.title} at ${notificationTime}`);
-//         // TODO: Send the notification to the user
-//         const notificationData = {
-//           title: `Reminder: ${reminder.title}`,
-//           message: reminder.messageId.messageData, // Use the message data from the populated field
-//           recipient: currentUserID
 
-//         };
+router.post ("/getAllReminders",async (req,res)=>{
+  try{
+    const { currentUserID } = req.body;
+  RemainderModel.find({
+      isActive: true,
+      userId: { $ne: currentUserID },
+      selectedMembers: { $elemMatch: { id: currentUserID } },
+    })
+      .populate({
+        path: "messageId",
+        select: "_id messageData",
+      })
+      .populate({
+        path: 'selectedMembers.id selectedMembers.addedBy',
+      select: '_id firstname lastname email'
+      })
 
-//         console.log("noti",notificationData)
-//       });
-//     });
-//     return res.json({ success: true, reminders });
-//   } catch (err) {
-//     console.log("err: ", err);
-//     return res.json({ msg: err });
-//   }
-// });
+      .exec((err,getReminders)=>{
+
+        if (err) {
+          return res.json({
+            msg: err,
+          });
+        } else {
+          return res.json({
+            success: true,
+            reminders: getReminders,
+          });
+        }
+      });
+  }catch{
+    return res.json({ msg: err });
+
+  }
+})
 router.post("/getreminder", async (req, res) => {
   try {
     const { currentUserID } = req.body;
@@ -121,18 +103,15 @@ router.post("/getreminder", async (req, res) => {
         select: "_id messageData",
       })
       .exec();
+      
 
     // Loop through each reminder for selected member and schedule a reminder notification
     reminders.forEach((reminder) => {
       const scheduledTime = moment.tz(reminder.scheduledTime, "Asia/Kolkata"); // Set the time zone of the scheduled time
-      // console.log("scheduledTime:", scheduledTime);
       const notificationTime = scheduledTime.toDate();
-      // console.log("notificationTime:", notificationTime);
-      // Schedule the reminder notification for the user's notification time
       schedule.scheduleJob(notificationTime, () => {
         const localTime = scheduledTime.clone().tz(moment.tz.guess()); // Convert the scheduled time to the local time zone of the user
         const formattedTime = localTime.format("h:mm a"); // Format the time as "5:15 pm"
-        // console.log(`Reminder for ${reminder.title} at ${formattedTime}`);
         // TODO: Send the notification to the user
         const notificationData = {
           title: `Reminder: ${reminder.title}`,
