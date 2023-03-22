@@ -5,6 +5,7 @@ const RemainderModel = require("../models/RemainderModel");
 const moment = require("moment-timezone");
 const schedule = require("node-schedule");
 const io = require("socket.io");
+const { sendMail } = require("../services/mail.services");
 router.get("/", (req, res) => res.send(" Remainder Route"));
 
 router.post("/create", async (req, res) => {
@@ -24,41 +25,37 @@ router.post("/create", async (req, res) => {
       addedBy: userId,
     }));
 
-      const remindersQuery = {
-        groupId,
-        userId,
-        caseId,
-        messageId,
-        title,
-        scheduledTime, // Use scheduledTime instead of date and time
-        selectedMembers: struturedMembers,
-      };
+    const remindersQuery = {
+      groupId,
+      userId,
+      caseId,
+      messageId,
+      title,
+      scheduledTime, // Use scheduledTime instead of date and time
+      selectedMembers: struturedMembers,
+    };
 
-      RemainderModel.create(remindersQuery, (err, reminder) => {
-        if (err) {
-          return res.json({
-            msg: err,
-          });
-        } else {
-          return res.json({
-            success: true,
-            reminder,
-          });
-        }
-      });
-    
-    
+    RemainderModel.create(remindersQuery, (err, reminder) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else {
+        return res.json({
+          success: true,
+          reminder,
+        });
+      }
+    });
   } catch (err) {
     return res.json({ msg: err?.name || err });
   }
 });
 
-
-
-router.post ("/getAllReminders",async (req,res)=>{
-  try{
+router.post("/getAllReminders", async (req, res) => {
+  try {
     const { currentUserID } = req.body;
-  RemainderModel.find({
+    RemainderModel.find({
       isActive: true,
       userId: { $ne: currentUserID },
       selectedMembers: { $elemMatch: { id: currentUserID } },
@@ -68,12 +65,11 @@ router.post ("/getAllReminders",async (req,res)=>{
         select: "_id messageData",
       })
       .populate({
-        path: 'selectedMembers.id selectedMembers.addedBy',
-      select: '_id firstname lastname email'
+        path: "selectedMembers.id selectedMembers.addedBy",
+        select: "_id firstname lastname email",
       })
 
-      .exec((err,getReminders)=>{
-
+      .exec((err, getReminders) => {
         if (err) {
           return res.json({
             msg: err,
@@ -85,11 +81,11 @@ router.post ("/getAllReminders",async (req,res)=>{
           });
         }
       });
-  }catch{
+  } catch {
     return res.json({ msg: err });
-
   }
-})
+});
+
 router.post("/getreminder", async (req, res) => {
   try {
     const { currentUserID } = req.body;
@@ -102,27 +98,60 @@ router.post("/getreminder", async (req, res) => {
         path: "messageId",
         select: "_id messageData",
       })
+      .populate({
+        path: "selectedMembers.id",
+        select: "_id firstname lastname email",
+      })
       .exec();
-      
-
-    // Loop through each reminder for selected member and schedule a reminder notification
+    // Schedule the reminders
+    const scheduledReminders = [];
     reminders.forEach((reminder) => {
-      const scheduledTime = moment.tz(reminder.scheduledTime, "Asia/Kolkata"); // Set the time zone of the scheduled time
-      const notificationTime = scheduledTime.toDate();
-      schedule.scheduleJob(notificationTime, () => {
-        const localTime = scheduledTime.clone().tz(moment.tz.guess()); // Convert the scheduled time to the local time zone of the user
-        const formattedTime = localTime.format("h:mm a"); // Format the time as "5:15 pm"
-        // TODO: Send the notification to the user
-        const notificationData = {
-          title: `Reminder: ${reminder.title}`,
-          message: reminder.messageId.messageData, // Use the message data from the populated field
-          recipient: currentUserID,
-        };
-
-        // console.log(`Notification scheduled for ${formattedTime} with data:`, notificationData);
-      });
+      const scheduledTime = moment.tz(
+        reminder.scheduledTime,
+        "Asia/Kolkata"
+      );
+      const notificationTime = scheduledTime
+        .clone()
+        .subtract(5, "hours")
+        .subtract(30, "minutes")
+        .toDate();
+      // Schedule the notification to show when the notification time is reached
+      const now = new Date().getTime();
+      const timeDiff = notificationTime.getTime() - now;
+      if (timeDiff > 0) {
+        // Set a timeout for the notification to be received
+        const timeoutId = setTimeout(() => {
+          // Send the reminder to selected members
+          const selectedMembers = reminder.selectedMembers.map(
+            (member) => member.id.email
+          );
+          const mailOptions = {
+            to: selectedMembers,
+            subject: `Reminder Message: ${reminder.title}`,
+            html: `<div><h3>Hello, This is a Reminder Message from Rain Computing</h3>
+            <p>Your reminder Time is at ${notificationTime}:</p>
+            <p>Title: ${reminder.title}</p>
+            <p>Message: ${reminder.messageId.messageData}</p>
+            <a href="http://raincomputing.net">View Reminder</a></div>`,
+          };
+          sendMail(mailOptions)
+            .then(() => {
+              console.log("Reminder sent successfully");
+            })
+            .catch((error) => {
+              console.error("Error sending reminder:", error);
+            });
+          // Remove the scheduled reminder from the list
+          scheduledReminders.splice(scheduledReminders.indexOf(timeoutId), 1);
+        }, timeDiff);
+        // Add the scheduled reminder to the list
+        scheduledReminders.push(timeoutId);
+      } else {
+        console.log(
+          `Reminder notification time for "${reminder.title}" has already passed.`
+        );
+      }
     });
-
     // Find the earliest reminder in the list
     const nextReminder = reminders.reduce((acc, curr) => {
       if (!acc) {
@@ -137,25 +166,30 @@ router.post("/getreminder", async (req, res) => {
         }
       }
     }, null);
-
-    // If there is a reminder scheduled, create a response data object with the reminder and formatted time for the next notification
-    let responseData = { success: true, reminders };
+    let responseData = { success: true, reminders: reminders };
     if (nextReminder) {
-      const nextScheduledTime = moment.tz(nextReminder.scheduledTime, "Asia/Kolkata");
-      const formattedNextScheduledTime = nextScheduledTime.clone().tz(moment.tz.guess()).format("h:mm a");
+      const nextScheduledTime = moment.tz(
+        nextReminder.scheduledTime,
+        "Asia/Kolkata"
+      );
+      const formattedNextScheduledTime = nextScheduledTime
+        .clone()
+        .tz(moment.tz.guess())
+        .format("h:mm a");
       responseData.nextNotificationTime = formattedNextScheduledTime;
       responseData.nextReminder = nextReminder;
+    } else {
+      // If there is no reminder scheduled, return an empty response
+      responseData.nextNotificationTime = null;
+      responseData.nextReminder = null;
     }
-
-    // console.log("responseData", responseData);
-    return res.json(responseData);
+    // Send the response
+    res.json(responseData);
   } catch (err) {
-    // console.log("err: ", err);
-    return res.json({ msg: err });
+    console.error("Error getting reminders:", err);
+    res.json({ success: false, msg: err.message });
   }
 });
-
-
 
 router.post("/getreminderself", async (req, res) => {
   try {
