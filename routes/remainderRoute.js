@@ -6,6 +6,7 @@ const moment = require("moment-timezone");
 const schedule = require("node-schedule");
 const io = require("socket.io");
 const { sendMail } = require("../services/mail.services");
+const Message = require("../models/Message");
 router.get("/", (req, res) => res.send(" Remainder Route"));
 
 router.post("/create", async (req, res) => {
@@ -133,7 +134,6 @@ router.post("/getreminder", async (req, res) => {
             html: `<div><h3>Hello, This is a Reminder Message from Rain Computing</h3>
             <p>Your reminder Time is at ${notificationTime}:</p>
             <p>Title: ${reminder.title}</p>
-            <p>Message: ${reminder.messageId.messageData}</p>
             <a href="http://raincomputing.net">View Reminder</a></div>`,
           };
           sendMail(mailOptions)
@@ -143,12 +143,40 @@ router.post("/getreminder", async (req, res) => {
             .catch((error) => {
               console.error("Error sending reminder:", error);
             });
+            
           // Remove the scheduled reminder from the list
           scheduledReminders.splice(
             scheduledReminders.findIndex((r) => r.id === reminder._id),
             1
           );
         }, timeDiff);
+        //send the reminder to soketio (message)
+        async function sendMessage() {
+          const messageQuery = {
+            groupId: reminder?.groupId,
+            sender: currentUserID,
+            receivers: reminder?.selectedMembers.map((member) => member.id._id),
+            messageData: `Reminder Message : ${reminder?.title}`,
+          };
+          let sendMessages = [];
+        
+          if (reminders?.groupId) {
+            messageQuery.groupId = reminders.groupId;
+          }
+        
+          try {
+            const createdMessage = await Message.create(messageQuery);
+            console.log("createdMessage :", createdMessage);
+        
+            if (createdMessage) {
+              sendMessages.push(createdMessage);
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        
+        sendMessage();
         // Add the scheduled reminder to the list
         scheduledReminders.push({ id: reminder._id, timeoutId: timeoutId });
       } else {
