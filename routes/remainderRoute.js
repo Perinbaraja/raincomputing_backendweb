@@ -105,18 +105,20 @@ router.post("/getreminder", async (req, res) => {
       .exec();
     // Schedule the reminders
     const scheduledReminders = [];
+    const now = new Date().getTime();
     reminders.forEach((reminder) => {
-      const scheduledTime = moment.tz(
-        reminder.scheduledTime,
-        "Asia/Kolkata"
-      );
+      const scheduledTime = moment.tz(reminder.scheduledTime, "Asia/Kolkata");
       const notificationTime = scheduledTime
         .clone()
         .subtract(5, "hours")
         .subtract(30, "minutes")
         .toDate();
+      // Check for duplicates
+      if (scheduledReminders.some((r) => r.id === reminder._id)) {
+        console.log(`Reminder "${reminder.title}" already scheduled.`);
+        return;
+      }
       // Schedule the notification to show when the notification time is reached
-      const now = new Date().getTime();
       const timeDiff = notificationTime.getTime() - now;
       if (timeDiff > 0) {
         // Set a timeout for the notification to be received
@@ -142,16 +144,20 @@ router.post("/getreminder", async (req, res) => {
               console.error("Error sending reminder:", error);
             });
           // Remove the scheduled reminder from the list
-          scheduledReminders.splice(scheduledReminders.indexOf(timeoutId), 1);
+          scheduledReminders.splice(
+            scheduledReminders.findIndex((r) => r.id === reminder._id),
+            1
+          );
         }, timeDiff);
         // Add the scheduled reminder to the list
-        scheduledReminders.push(timeoutId);
+        scheduledReminders.push({ id: reminder._id, timeoutId: timeoutId });
       } else {
         console.log(
           `Reminder notification time for "${reminder.title}" has already passed.`
         );
       }
     });
+
     // Find the earliest reminder in the list
     const nextReminder = reminders.reduce((acc, curr) => {
       if (!acc) {
