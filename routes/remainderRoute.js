@@ -149,8 +149,7 @@ router.post("/getreminder", async (req, res) => {
             scheduledReminders.findIndex((r) => r.id === reminder._id),
             1
           );
-        }, timeDiff);
-        //send the reminder to soketio (message)
+           //send the reminder to soketio (message)
         async function sendMessage() {
           const messageQuery = {
             groupId: reminder?.groupId,
@@ -177,6 +176,8 @@ router.post("/getreminder", async (req, res) => {
         }
         
         sendMessage();
+        }, timeDiff);
+       
         // Add the scheduled reminder to the list
         scheduledReminders.push({ id: reminder._id, timeoutId: timeoutId });
       } else {
