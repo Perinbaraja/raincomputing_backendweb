@@ -19,11 +19,11 @@ router.post("/create", async (req, res) => {
       userId,
       scheduledTime,
       selectedMembers,
+      createdBy
     } = req.body;
 
     const struturedMembers = selectedMembers.map((m) => ({
       id: m,
-      addedBy: userId,
     }));
 
     const remindersQuery = {
@@ -34,6 +34,7 @@ router.post("/create", async (req, res) => {
       title,
       scheduledTime, // Use scheduledTime instead of date and time
       selectedMembers: struturedMembers,
+      createdBy
     };
 
     RemainderModel.create(remindersQuery, (err, reminder) => {
@@ -153,8 +154,8 @@ router.post("/getreminder", async (req, res) => {
         async function sendMessage() {
           const messageQuery = {
             groupId: reminder?.groupId,
-            sender: currentUserID,
-            receivers: reminder?.selectedMembers.map((member) => member.id._id),
+            sender: reminder?.createdBy,
+            receivers: reminder?.selectedMembers.map((member) => member.id._id ),
             messageData: `Reminder Message : ${reminder?.title}`,
           };
           let sendMessages = [];
