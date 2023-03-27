@@ -27,10 +27,11 @@ const RemainderSchema = mongoose.Schema(
         },
       }
     ],
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "UserModel",
-    },
+    createdBy: 
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserModel",
+      },
     title: {
       type: String,
     },
