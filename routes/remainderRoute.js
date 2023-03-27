@@ -70,6 +70,13 @@ router.post("/getAllReminders", async (req, res) => {
         path: "selectedMembers.id selectedMembers.addedBy",
         select: "_id firstname lastname email",
       })
+      .populate({
+        path: 'groupId',
+        populate: {
+          path: 'groupMembers.id',
+          select: ' _id firstname lastname email'
+        }
+      })
 
       .exec((err, getReminders) => {
         if (err) {
@@ -267,5 +274,30 @@ router.put("/removeReminder", async (req, res) => {
     res.json({ success: true, removeReminder });
   }
 });
+router.put("/updateReminder", async (req, res) => {
+  try {
+    const { reminderId, title,userId,scheduledTime, selectedMembers } = req.body;
+ // assuming you have defined the `userId` variable
+    const struturedMembers = selectedMembers.map((m) => ({
+      id: m,
+      addedBy: userId,
+    }));
+    const data = {
+      title: title,
+      selectedMembers: struturedMembers,
+      scheduledTime:scheduledTime
+    };
+    const reminder = await RemainderModel.findByIdAndUpdate(
+      { _id: reminderId },
+      data,
+      { new: true }
+    );
+    return res.json({ success: true, data: reminder });
+  } catch (err) {
+    console.log(err);
+    return res.json({ msg: err.message });
+  }
+});
+
 
 module.exports = router;
