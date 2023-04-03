@@ -21,6 +21,7 @@ router.post("/register", async (req, res) => {
       city,
       postalCode,
       status,
+      scheduleDates,
     } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
@@ -39,6 +40,7 @@ router.post("/register", async (req, res) => {
         city,
         postalCode,
         status,
+        scheduleDates,
         aflag: true,
       };
       const isAlreadyRegistered = await RegAttorneyModel.find({
@@ -78,6 +80,42 @@ router.post("/register", async (req, res) => {
     }
   } catch (err) {
     return res.json({ msg: err?.name || err });
+  }
+});
+router.put("/attorneyUpdate", async (req, res) => {
+  try {
+    const {
+      userID,
+      phoneNumber,
+      firm,
+      bio,
+      address,
+      country,
+      state,
+      city,
+      postalCode,
+      status,
+    } = req.body;
+    const data = {
+      phoneNumber: phoneNumber,
+      firm: firm,
+      bio: bio,
+      address: address,
+      country: country,
+      state: state,
+      city: city,
+      postalCode: postalCode,
+      status: status,
+    };
+    const updatedAttorney = await RegAttorneyModel.findByIdAndUpdate(
+      { _id: userID },
+      data,
+      { new: true }
+    );
+    return res.json({ success: true, data: updatedAttorney });
+  } catch (err) {
+    console.log(err);
+    return res.json({ msg: err.message });
   }
 });
 
@@ -128,7 +166,6 @@ router.post("/getAllAttorney", async (req, res) => {
 });
 
 router.post("/regAttorneyDetails", async (req, res) => {
-
   const { id } = req.body;
   RegAttorneyModel.findById({ _id: id })
     .populate({
@@ -158,5 +195,24 @@ router.post("/inviteAttorney", async (req, res) => {
   };
   const mailSent = await sendMail(mailOptions);
   res.json({ success: true, mailSent });
+});
+router.put("/updateSchedule", async (req, res) => {
+  try {
+    const { attorneyID, scheduleDates } = req.body;
+
+    const data = {
+      attorneyID,
+      scheduleDates: scheduleDates, // Use scheduledTime instead of date and time
+    };
+
+    const updateSchedules = await RegAttorneyModel.findByIdAndUpdate(
+      { _id: attorneyID },
+      data,
+      { new: true }
+    );
+    return res.json({ success: true, data: updateSchedules });
+  } catch (err) {
+    return res.json({ msg: err?.name || err });
+  }
 });
 module.exports = router;

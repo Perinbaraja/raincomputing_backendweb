@@ -7,11 +7,9 @@ const RegAttorneySchema = mongoose.Schema({
   },
   registerNumber: {
     type: String,
-    required: true,
   },
   phoneNumber: {
     type: String,
-    required: true,
   },
   firm: {
     type: String,
@@ -20,7 +18,7 @@ const RegAttorneySchema = mongoose.Schema({
   bio: {
     type: String,
   },
-  address:{
+  address: {
     type: String,
   },
   country: {
@@ -49,6 +47,11 @@ const RegAttorneySchema = mongoose.Schema({
   status: {
     type: String,
   },
+  scheduleDates: [
+    {
+      type: Date,
+    },
+  ],
 });
 
 module.exports = mongoose.model("RegAttorney", RegAttorneySchema);
