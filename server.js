@@ -298,14 +298,30 @@ const create = async () => {
     },
   });
   //Checking file types
+  // function checkFileType(file, cb) {
+  //   const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf|zip|mp3|wav/;
+  //   const extname = filetypes.test(
+  //     path.extname(file.originalname).toLocaleLowerCase()
+  //   );
+  //   const mimetype = filetypes.test(file.mimetype);
+  //   if (mimetype && extname) return cb(null, true);
+  //   cb("filetype");
+  // }
+
   function checkFileType(file, cb) {
-    const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf|zip/;
+    const filetypes = /jpeg|doc|docx|xls|xlsx|jpg|png|pdf|zip|mp3|wav|webm/;
     const extname = filetypes.test(
       path.extname(file.originalname).toLocaleLowerCase()
     );
-    const mimetype = filetypes.test(file.mimetype);
-    if (mimetype && extname) return cb(null, true);
-    cb("filetype");
+    const mimetype = filetypes.test(file.mimetype) || (
+      file.mimetype === 'audio/mpeg' || 
+      file.mimetype === 'audio/wav'
+    );
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb("filetype");
+    }
   }
   //Attachment middleware
   const uploadMiddleware = (req, res, next) => {

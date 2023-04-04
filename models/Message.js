@@ -68,7 +68,13 @@ const messageSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isVoiceMessage: {
+      type: Boolean,
+      default: false,
+    },
     attachments: [],
+    voiceMessage:[],
+  
     isForward: {
       type: Boolean,
       default: false,
