@@ -2,8 +2,7 @@ const { Router } = require("express");
 const Group = require("../models/Group");
 const router = Router();
 const RemainderModel = require("../models/RemainderModel");
-const moment = require("moment-timezone");
-const schedule = require("node-schedule");
+const moment = require("moment");const schedule = require("node-schedule");
 const io = require("socket.io");
 const { sendMail } = require("../services/mail.services");
 const Message = require("../models/Message");
@@ -114,120 +113,166 @@ router.post("/getreminder", async (req, res) => {
       .exec();
     // Schedule the reminders
     const scheduledReminders = [];
-    const now = new Date().getTime();
-    reminders.forEach((reminder) => {
-      const scheduledTime = moment.tz(reminder.scheduledTime, "Asia/Kolkata");
-      const notificationTime = scheduledTime
-        .clone()
-        .subtract(5, "hours")
-        .subtract(30, "minutes")
-        .toDate();
-      // Check for duplicates
+    const now = new Date()
+    now.setHours(now.getHours() + 5);
+now.setMinutes(now.getMinutes() + 30);
+    console.log("now",now)
+        // Find the earliest reminder in the list
+        const upcomingReminders = reminders.filter(reminder => {
+          const scheduledTimes = reminder.scheduledTime.filter(time => new Date(time) > now);
+          // console.log("now",now)
+          // Update the reminder object with the filtered scheduledTimes
+          reminder.scheduledTime = scheduledTimes;
+          // Return the reminder object if it has scheduledTime values after filtering, otherwise return null
+          return scheduledTimes.length > 0 ? reminder : null;
+        });
+        // console.log("upcomingReminders,",upcomingReminders)
+        // Remove any null values from the upcomingReminders array
+        const filteredUpcomingReminders = upcomingReminders.filter(reminder => reminder !== null);
+        
+        let responseData = { success: true, reminders: reminders };
+        // if (filteredUpcomingReminders.length > 0) {
+          let nextScheduledTime = moment(filteredUpcomingReminders[0].scheduledTime[0]);
+          // Iterate over all the reminders in the filteredUpcomingReminders array
+          for (let i = 1; i < filteredUpcomingReminders.length; i++) {
+            const scheduledTime = moment(filteredUpcomingReminders[i].scheduledTime[0]);
+            // Compare the scheduledTime with the nextScheduledTime
+            if (scheduledTime < nextScheduledTime) {
+              nextScheduledTime = scheduledTime;
+            }
+          }
+    //       for (let i = 1; i < filteredUpcomingReminders.length; i++) {      
+    // const nextScheduledData=filteredUpcomingReminders[i].scheduledTime.filter(formattedNextScheduledTime)
+    // console.log("nextScheduledData",nextScheduledData)
+    // nextNotifyData=nextScheduledData
+   
+    //       }
+    const nextNotifyData = filteredUpcomingReminders
+      .filter((reminder) => reminder.scheduledTime.some((time) => moment(time).isSame(nextScheduledTime)))
+    // console.log("nextNotifyData", nextNotifyData);
+    if (nextNotifyData.length > 0) {
+          const formattedNextScheduledTime = nextScheduledTime;
+          responseData.nextNotificationTime = formattedNextScheduledTime;
+          responseData.nextReminders = nextNotifyData
+        // } else {
+        //   // If there are no upcoming reminders, return an empty response
+        //   responseData.nextNotificationTime = null;
+        //   responseData.nextReminders = [];
+        // }
+        
+        // Send the response
+        res.json(responseData);
+
+        console.log("  nextNotifyData",  nextNotifyData)
+  
+        nextNotifyData.forEach((reminder) => {
+    
+
+       // Find the earliest reminder in the list
+       const scheduledTime = nextNotifyData.filter(reminder => {
+        const scheduledTimes = reminder.scheduledTime.filter(time => new Date(time) > now);
+     
+        // Update the reminder object with the filtered scheduledTimes
+        reminder.scheduledTime = scheduledTimes;
+        // Return the reminder object if it has scheduledTime values after filtering, otherwise return null
+        return scheduledTimes.length > 0 ? reminder : null;
+      });
+      // console.log("upcomingReminders,",upcomingReminders)
+      // Remove any null values from the upcomingReminders array
+      const filteredScheduledTime = scheduledTime.filter(reminder => reminder !== null);
+
+      // console.log("filteredScheduledTime ", filteredScheduledTime)
+   
+        let nextScheduledTimeForMsg = filteredScheduledTime[0].scheduledTime[0];
+        // Iterate over all the reminders in the filteredUpcomingReminders array
+        for (let i = 1; i < filteredScheduledTime.length; i++) {
+          const scheduledTime = filteredScheduledTime[i].scheduledTime[0];
+          // Compare the scheduledTime with the nextScheduledTime
+          if (scheduledTime < nextScheduledTimeForMsg) {
+            nextScheduledTimeForMsg = scheduledTime;
+          }
+        }
+      
+       
+       
+
+      console.log("nextScheduledTimeForMsg",nextScheduledTimeForMsg)
+
       if (scheduledReminders.some((r) => r.id === reminder._id)) {
         console.log(`Reminder "${reminder.title}" already scheduled.`);
         return;
       }
       // Schedule the notification to show when the notification time is reached
-      const timeDiff = notificationTime.getTime() - now;
-      if (timeDiff > 0) {
+      const timeDiff = nextScheduledTimeForMsg - now;
+      console.log("timeDiff",timeDiff)
+      
+      if (timeDiff < 30000) {
         // Set a timeout for the notification to be received
-        const timeoutId = setTimeout(() => {
-          // Send the reminder to selected members
-          const selectedMembers = reminder.selectedMembers.map(
-            (member) => member.id.email
-          );
-          const mailOptions = {
-            to: selectedMembers,
-            subject: `Reminder Message: ${reminder.title}`,
-            html: `<div><h3>Hello, This is a Reminder Message from Rain Computing</h3>
-            <p>Your reminder Time is at ${notificationTime}:</p>
-            <p>Title: ${reminder.title}</p>
-            <a href="http://raincomputing.net">View Reminder</a></div>`,
-          };
-          sendMail(mailOptions)
-            .then(() => {
-              console.log("Reminder sent successfully");
-            })
-            .catch((error) => {
-              console.error("Error sending reminder:", error);
-            });
-            
+        const timeoutId = setTimeout(async () => {
           // Remove the scheduled reminder from the list
           scheduledReminders.splice(
             scheduledReminders.findIndex((r) => r.id === reminder._id),
             1
           );
-           //send the reminder to soketio (message)
-        async function sendMessage() {
-          const messageQuery = {
-            groupId: reminder?.groupId,
-            sender: reminder?.createdBy,
-            receivers: reminder?.selectedMembers.map((member) => member.id._id ),
-            messageData: `Reminder Message : ${reminder?.title}`,
+          
+          // Send the reminder to selected members
+          const selectedMembers = reminder.selectedMembers.map(
+            (member) => member.id.email
+          );
+        
+          const mailOptions = {
+            to: selectedMembers,
+            subject: `Reminder Message: ${reminder.title}`,
+            html: `<div><h3>Hello, This is a Reminder Message from Rain Computing</h3>
+            <p>Your reminder Time is at ${nextScheduledTimeForMsg}:</p>
+            <p>Title: ${reminder.title}</p>
+            <a href="http://raincomputing.net">View Reminder</a></div>`,
           };
-          let sendMessages = [];
-        
-          if (reminders?.groupId) {
-            messageQuery.groupId = reminders.groupId;
-          }
-        
+          
           try {
-            const createdMessage = await Message.create(messageQuery);
-            console.log("createdMessage :", createdMessage);
-        
-            if (createdMessage) {
-              sendMessages.push(createdMessage);
-            }
+            await sendMail(mailOptions);
+            console.log("Reminder sent successfully");
           } catch (error) {
-            console.error(error);
+            console.error("Error sending reminder:", error);
           }
-        }
+            
+          //send the reminder to socket.io (message)
+          async function sendMessage() {
+            const messageQuery = {
+              groupId: reminder?.groupId,
+              sender: reminder?.createdBy,
+              receivers: reminder?.selectedMembers.map((member) => member.id._id ),
+              messageData: `Reminder Message : ${reminder?.title}`,
+            };
+            let sendMessages = [];
+            if (reminders?.groupId) {
+              messageQuery.groupId = reminders.groupId;
+            }
+            try {
+              const createdMessage = await Message.create(messageQuery);
+              console.log("createdMessage :", createdMessage);
+              if (createdMessage) {
+                sendMessages.push(createdMessage);
+              }
+            } catch (error) {
+              console.error(error);
+            }
+          }
+          sendMessage();
+          }, timeDiff);
         
-        sendMessage();
-        }, timeDiff);
-       
         // Add the scheduled reminder to the list
         scheduledReminders.push({ id: reminder._id, timeoutId: timeoutId });
+        console.log("scheduledReminders",scheduledReminders)
       } else {
         console.log(
           `Reminder notification time for "${reminder.title}" has already passed.`
         );
       }
     });
-
-    // Find the earliest reminder in the list
-    const nextReminder = reminders.reduce((acc, curr) => {
-      if (!acc) {
-        return curr;
-      } else {
-        const accScheduledTime = moment.tz(acc.scheduledTime, "Asia/Kolkata");
-        const currScheduledTime = moment.tz(curr.scheduledTime, "Asia/Kolkata");
-        if (currScheduledTime.isBefore(accScheduledTime)) {
-          return curr;
-        } else {
-          return acc;
-        }
-      }
-    }, null);
-    let responseData = { success: true, reminders: reminders };
-    if (nextReminder) {
-      const nextScheduledTime = moment.tz(
-        nextReminder.scheduledTime,
-        "Asia/Kolkata"
-      );
-      const formattedNextScheduledTime = nextScheduledTime
-        .clone()
-        .tz(moment.tz.guess())
-        .format("h:mm a");
-      responseData.nextNotificationTime = formattedNextScheduledTime;
-      responseData.nextReminder = nextReminder;
-    } else {
-      // If there is no reminder scheduled, return an empty response
-      responseData.nextNotificationTime = null;
-      responseData.nextReminder = null;
-    }
-    // Send the response
-    res.json(responseData);
+  console.log("scheduledReminders",scheduledReminders)
+  }
+    // console.log("res",responseData)
   } catch (err) {
     console.error("Error getting reminders:", err);
     res.json({ success: false, msg: err.message });
@@ -298,6 +343,7 @@ router.put("/updateReminder", async (req, res) => {
     return res.json({ msg: err.message });
   }
 });
+
 
 
 module.exports = router;

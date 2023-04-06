@@ -45,10 +45,11 @@ const RemainderSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    scheduledTime: {
+    scheduledTime: [{
       type: Date,
       // required: true,
-    },
+    }]
+    
   },
   { timestamps: true }
 );
