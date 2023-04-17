@@ -40,7 +40,7 @@ const CREATE = async (req, res) => {
 
 const GETBYUSERID = async (req, res) => {
   try {
-    const { userId, page = 1, limit = 10, searchText = "" } = req.body;
+    const { userId, page = 1, limit = 50, searchText = "" } = req.body;
     const skip = (page - 1) * limit;
     const userCases = await Case.find(
       {
