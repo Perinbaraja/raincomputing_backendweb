@@ -83,6 +83,10 @@ const messageSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isEdit: {
+      type: Boolean,
+      default: false,
+    },
     cleardBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

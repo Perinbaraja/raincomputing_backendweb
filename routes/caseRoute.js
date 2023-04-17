@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { caseController } = require("../controllers/CaseController");
+const { caseController } = require("../controllers/caseController");
 const router = Router();
 router.get("", (req, res) => res.send("Case Route"));
 router.post("/create", caseController.CREATE);

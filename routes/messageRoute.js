@@ -16,6 +16,7 @@ router.post("/getgroupnameById", messageController.GETGROUPBYNAMEID);
 router.post("/pinnedmsgById", messageController.PINNEDMESSAGE);
 router.post("/notes", messageController.FILENOTES);
 router.post("/getPinnedMsg", messageController.GETPINMESSAGES);
+router.post("/updateMsg", messageController.UPDATE_MESSAGE);
 
 
 module.exports = router;

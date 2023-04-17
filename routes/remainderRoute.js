@@ -132,17 +132,18 @@ router.post("/getreminder", async (req, res) => {
       // Return the reminder object if it has scheduledTime values after filtering, otherwise return null
       return scheduledTimes.length > 0 ? reminder : null;
     });
-    // console.log("upcomingReminders,",upcomingReminders)
+    console.log("upcomingReminders,",upcomingReminders)
     // Remove any null values from the upcomingReminders array
     const filteredUpcomingReminders = upcomingReminders.filter(
       (reminder) => reminder !== null
     );
 
     let responseData = { success: true, reminders: reminders };
-    // if (filteredUpcomingReminders.length > 0) {
+    if (filteredUpcomingReminders.length > 0) {
     let nextScheduledTime = moment(
       filteredUpcomingReminders[0].scheduledTime[0]
     );
+    console.log("filteredUpcomingReminders",filteredUpcomingReminders)
     // Iterate over all the reminders in the filteredUpcomingReminders array
     for (let i = 1; i < filteredUpcomingReminders.length; i++) {
       const scheduledTime = moment(
@@ -153,6 +154,7 @@ router.post("/getreminder", async (req, res) => {
         nextScheduledTime = scheduledTime;
       }
     }
+  
     //       for (let i = 1; i < filteredUpcomingReminders.length; i++) {
     // const nextScheduledData=filteredUpcomingReminders[i].scheduledTime.filter(formattedNextScheduledTime)
     // console.log("nextScheduledData",nextScheduledData)
@@ -164,6 +166,7 @@ router.post("/getreminder", async (req, res) => {
         moment(time).isSame(nextScheduledTime)
       )
     );
+  
     // console.log("nextNotifyData", nextNotifyData);
     if (nextNotifyData.length > 0) {
       const formattedNextScheduledTime = nextScheduledTime;
@@ -289,7 +292,7 @@ router.post("/getreminder", async (req, res) => {
       //   }
       // });
       // console.log("scheduledReminders", scheduledReminders);
-    }
+    }}
     // console.log("res",responseData)
   } catch (err) {
     console.error("Error getting reminders:", err);
@@ -431,6 +434,7 @@ filteredReminders.forEach((reminder) => {
       (member) => member.id.email
     );
     const nextScheduledTime = reminder.nextScheduledTime;
+    
     nextScheduledTime.setHours(nextScheduledTime.getHours() - 5);
     nextScheduledTime.setMinutes(nextScheduledTime.getMinutes() - 30);
    
