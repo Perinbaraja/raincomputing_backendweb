@@ -138,6 +138,25 @@ const DELETEMSG = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const UPDATE_MESSAGE = async (req, res) => {
+  try {
+    const { _id, messageData, sender } = req.body;
+    
+    const updateQuery = {
+      messageData,
+      sender,
+      isEdit:true // If you want to update the sender field
+    };
+    const updatedMessage = await Message.findByIdAndUpdate(_id, updateQuery, { new: true });
+    return res.json({ success: true, updatedMessage });
+
+  } catch (err) {
+    console.log("Case update error", err);
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
+
 const GETFILES = async (req, res) => {
   try {
     const { caseId, searchText = "" } = req.body;
@@ -351,4 +370,5 @@ module.exports.messageController = {
   PINNEDMESSAGE,
   FILENOTES,
   GETPINMESSAGES,
+  UPDATE_MESSAGE
 };
