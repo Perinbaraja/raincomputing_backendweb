@@ -120,19 +120,16 @@ router.post("/getreminder", async (req, res) => {
     const now = new Date();
     now.setHours(now.getHours() + 5);
     now.setMinutes(now.getMinutes() + 30);
-    console.log("now", now);
     // Find the earliest reminder in the list
     const upcomingReminders = reminders.filter((reminder) => {
       const scheduledTimes = reminder.scheduledTime.filter(
         (time) => new Date(time) > now
       );
-      // console.log("now",now)
       // Update the reminder object with the filtered scheduledTimes
       reminder.scheduledTime = scheduledTimes;
       // Return the reminder object if it has scheduledTime values after filtering, otherwise return null
       return scheduledTimes.length > 0 ? reminder : null;
     });
-    console.log("upcomingReminders,", upcomingReminders);
     // Remove any null values from the upcomingReminders array
     const filteredUpcomingReminders = upcomingReminders.filter(
       (reminder) => reminder !== null
@@ -152,7 +149,7 @@ router.post("/getreminder", async (req, res) => {
           filteredUpcomingReminders[0].scheduledTime[0]
         );
       }
-      console.log("filteredUpcomingReminders", filteredUpcomingReminders);
+      // console.log("filteredUpcomingReminders", filteredUpcomingReminders);
       // Iterate over all the reminders in the filteredUpcomingReminders array
       for (let i = 1; i < filteredUpcomingReminders.length; i++) {
         if (
@@ -288,22 +285,14 @@ cron.schedule("*/10 * * * * *", async () => {
     const fifteenMinutesInMs = 15 * 60 * 1000;
     return timeDifference > 0 && timeDifference < fifteenMinutesInMs;
   });
-  console.log("filteredReminders", filteredReminders);
   // console.log("scheduledReminders", scheduledReminders);
   // Loop through each reminder in the filteredReminders array
   filteredReminders.forEach((reminder) => {
     // Calculate the time difference between the current time and the reminder time
     const timeDiff = reminder.nextScheduledTime - now;
-
-    console.log("reminder.nextScheduledTime", reminder.nextScheduledTime);
-
-    console.log("now", now);
-
-    console.log("timeDiff", timeDiff);
     if (timeDiff < 10000) {
       // Schedule the reminder to be sent at the appropriate time
       const timeoutId = setTimeout(async () => {
-        console.log("start");
         // Remove the scheduled reminder from the list
         scheduledRemindersData.splice(
           scheduledRemindersData.findIndex((r) => r.id === reminder._id),
@@ -322,7 +311,6 @@ cron.schedule("*/10 * * * * *", async () => {
         nextScheduledTime.setHours(nextScheduledTime.getHours() - 5);
         nextScheduledTime.setMinutes(nextScheduledTime.getMinutes() - 30);
 
-        console.log("nextScheduledTime", nextScheduledTime);
         const mailOptions = {
           to: selectedMembers,
           subject: `Reminder Message: ${reminder.title}`,
@@ -386,7 +374,6 @@ cron.schedule("*/10 * * * * *", async () => {
       );
     });
   }
-  console.log("filteredRemindersupdate", filteredReminders);
 });
 
 module.exports = router;
