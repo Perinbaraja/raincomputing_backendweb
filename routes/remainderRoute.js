@@ -254,7 +254,7 @@ router.put("/updateReminder", async (req, res) => {
   }
 });
 
-cron.schedule("*/10 * * * *", async () => {
+cron.schedule("*/10 * * * * *", async () => {
   const now = new Date();
   now.setHours(now.getHours() + 5);
   now.setMinutes(now.getMinutes() + 30);
