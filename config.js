@@ -14,7 +14,7 @@ const config = {
     "729499635503-cdvdr8eba2h50m0qv5skfpclvoa1jbuk.apps.googleusercontent.com",
   MAIL_CLIENT_SECRET: "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",
   MAIL_REFRESH_TOKEN:
-    "1//04RMd_UbsStOMCgYIARAAGAQSNwF-L9IrpH_Gk1OiNOGjk3_5AaxxmeSSeD0NAoqgnGt2zUsNNC6DubGexr9qJhmK_DBc8IMIrnI",
+    "1//047EPQ7bdOgSrCgYIARAAGAQSNwF-L9Ir--97X5aljQ0zV4rJMfIuY1H6IGEcACYfpR73cQQGzG34N4d6wiEgm5ijKOoJ7hWfAGE",
   MAIL_REDIRECT_URI: "http://localhost:8080/api/mail/searchMail",
 };
 
