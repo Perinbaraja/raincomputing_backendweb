@@ -17,7 +17,8 @@ const config = require("./config");
 const UserModel = require("./models/userModel");
 const { sendMail } = require("./services/mail.services");
 const Message = require("./models/Message");
-
+const { Configuration, OpenAIApi } = require("openai");
+const Key = require("./config");
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -352,6 +353,32 @@ const create = async () => {
       // if a file exists, send the data
       gfs.openDownloadStream(_id).pipe(res);
     });
+  });
+
+  //chat GPT integration
+  const configuration = new Configuration({
+    apiKey: Key.OPENAI_API_KEY,
+  });
+  const openai = new OpenAIApi(configuration);
+  app.post("/message", (req, res) => {
+    const response = openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: req.body.message,
+      temperature: 0,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+      max_tokens: 1256,
+    });
+  
+    response
+      .then((data) => {
+        const message = { message: data.data.choices[0].text };
+        res.send(message);
+      })
+      .catch((err) => {
+        res.send(err);
+      });
   });
 
   //Middleware configuration

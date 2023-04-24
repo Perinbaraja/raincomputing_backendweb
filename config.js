@@ -16,6 +16,7 @@ const config = {
   MAIL_REFRESH_TOKEN:
     "1//047EPQ7bdOgSrCgYIARAAGAQSNwF-L9Ir--97X5aljQ0zV4rJMfIuY1H6IGEcACYfpR73cQQGzG34N4d6wiEgm5ijKOoJ7hWfAGE",
   MAIL_REDIRECT_URI: "http://localhost:8080/api/mail/searchMail",
+  OPENAI_API_KEY: "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",
 };
 
 module.exports = config;
