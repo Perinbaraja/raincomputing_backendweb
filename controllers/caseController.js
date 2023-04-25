@@ -139,8 +139,67 @@ const REMOVE_ADMIN = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+// const LEAVE_CASE = async (req, res) => {
+//   try {
+//     const { caseId, memberId } = req.body;
+
+//     const updatedCase = await Case.findByIdAndUpdate(caseId, {
+//       $pull: {
+//         caseMembers: { id: memberId },
+//         notifyMembers: memberId
+//       },
+//     }, { new: true });
+
+//     // Remove the member from all the groups
+//     const updatedGroups = await Group.findByIdAndUpdate(
+//       { members: memberId },
+//       { $pull: { members: memberId } }
+//     );
+
+//     if (updatedCase && updatedGroups) {
+//       return res.json({ success: true, updatedCase, updatedGroups });
+//     }
+   
+//   } catch (err) {
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// }
+const LEAVE_CASE = async (req, res) => {
+  try {
+    const { caseId, memberId } = req.body;
+
+    // Find all the groups related to the caseId
+    const groups = await Group.find({ caseId });
+
+    // Remove the member from all the related groups
+    const updates = groups.map(group => {
+      return Group.findByIdAndUpdate(group._id, {
+        $pull: { groupMembers: { id: memberId } }
+      }, { new: true });
+    });
+    const updatedGroups = await Promise.all(updates);
+
+    // Update the case to remove the member
+    const updatedCase = await Case.findByIdAndUpdate(caseId, {
+      $pull: {
+        caseMembers: { id: memberId },
+        notifyMembers: memberId
+      },
+    }, { new: true });
+
+    if (updatedCase && updatedGroups) {
+      return res.json({ success: true, updatedCase, updatedGroups });
+    }
+   
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+}
+
+
 
 module.exports.caseController = {
+  LEAVE_CASE,
   CREATE,
   GETBYUSERID,
   UPDATE_CASE,
