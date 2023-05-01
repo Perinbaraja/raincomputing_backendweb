@@ -254,6 +254,127 @@ router.put("/updateReminder", async (req, res) => {
   }
 });
 
+// cron.schedule("*/10 * * * * *", async () => {
+//   const now = new Date();
+//   now.setHours(now.getHours() + 5);
+//   now.setMinutes(now.getMinutes() + 30);
+
+//   const nextNotifyData = await RemainderModel.find({
+//     isActive: true,
+//     // nextScheduledTime: { $gt: now },
+//   })
+//     .populate({
+//       path: "messageId",
+//       select: "_id messageData",
+//     })
+//     .populate({
+//       path: "selectedMembers.id",
+//       select: "_id firstname lastname email",
+//     })
+//     .exec();
+
+//   const scheduledRemindersData = [];
+//   console.log("scheduledRemindersData", scheduledRemindersData);
+//   const scheduledReminders = nextNotifyData.filter((reminder) =>
+//     reminder.scheduledTime.some((time) => time > now)
+//   );
+
+//   const filteredReminders = scheduledReminders.filter((reminder) => {
+//     const scheduledTime = new Date(reminder.nextScheduledTime);
+//     const timeDifference = scheduledTime.getTime() - now.getTime();
+//     const fifteenMinutesInMs = 15 * 60 * 1000;
+//     return timeDifference > 0 && timeDifference < fifteenMinutesInMs;
+//   });
+//   // console.log("scheduledReminders", scheduledReminders);
+//   // Loop through each reminder in the filteredReminders array
+//   filteredReminders.forEach((reminder) => {
+//     // Calculate the time difference between the current time and the reminder time
+//     const timeDiff = reminder.nextScheduledTime - now;
+//     if (timeDiff < 10000) {
+//       // Schedule the reminder to be sent at the appropriate time
+//       const timeoutId = setTimeout(async () => {
+//         // Remove the scheduled reminder from the list
+//         scheduledRemindersData.splice(
+//           scheduledRemindersData.findIndex((r) => r.id === reminder._id),
+//           1
+//         );
+//         scheduledReminders.splice(
+//           scheduledReminders.findIndex((r) => r.id === reminder._id),
+//           1
+//         );
+//         // Send the reminder to selected members
+//         const selectedMembers = reminder.selectedMembers.map(
+//           (member) => member.id.email
+//         );
+//         const nextScheduledTime = reminder.nextScheduledTime;
+
+//         nextScheduledTime.setHours(nextScheduledTime.getHours() - 5);
+//         nextScheduledTime.setMinutes(nextScheduledTime.getMinutes() - 30);
+
+//         const mailOptions = {
+//           to: selectedMembers,
+//           subject: `Reminder Message: ${reminder.title}`,
+//           html: `<div><h3>Hello, This is a Reminder Message from Rain Computing</h3>
+//         <p>Your reminder Time is at ${nextScheduledTime}:</p>
+//         <p>Title: ${reminder.title}</p>
+//         <a href="http://raincomputing.net">View Reminder</a></div>`,
+//         };
+
+//         try {
+//           await sendMail(mailOptions);
+//           console.log("Reminder sent successfully");
+//         } catch (error) {
+//           console.error("Error sending reminder:", error);
+//         }
+
+//         //send the reminder to socket.io (message)
+//         async function sendMessage() {
+//           const messageQuery = {
+//             groupId: reminder?.groupId,
+//             sender: reminder?.createdBy,
+//             receivers: reminder?.selectedMembers.map((member) => member.id._id),
+//             messageData: `Reminder Message : ${reminder?.title}`,
+//           };
+//           let sendMessages = [];
+//           if (nextNotifyData?.groupId) {
+//             messageQuery.groupId = nextNotifyData.groupId;
+//           }
+//           try {
+//             const createdMessage = await Message.create(messageQuery);
+//             console.log("createdMessage :", createdMessage);
+//             if (createdMessage) {
+//               sendMessages.push(createdMessage);
+//             }
+//           } catch (error) {
+//             console.error(error);
+//           }
+//         }
+//         sendMessage();
+//       }, timeDiff);
+
+//       // Add the scheduled reminder to the list
+//       scheduledRemindersData.push({ id: reminder._id, timeoutId: timeoutId });
+//       // console.log("scheduledReminders", scheduledReminders);
+//     } else {
+//       console.log(
+//         `Reminder notification time for "${reminder.title}" has already passed.`
+//       );
+//     }
+//   });
+
+//   if (scheduledReminders) {
+//     scheduledReminders?.forEach(async (reminder) => {
+//       const newNextScheduledTime = reminder?.scheduledTime.filter(
+//         (time) => time > now
+//       );
+//       // console.log("start")
+//       await RemainderModel.updateOne(
+//         { _id: reminder._id },
+//         { nextScheduledTime: newNextScheduledTime[0] }
+//       );
+//     });
+//   }
+// });
 cron.schedule("*/10 * * * * *", async () => {
   const now = new Date();
   now.setHours(now.getHours() + 5);
@@ -283,14 +404,16 @@ cron.schedule("*/10 * * * * *", async () => {
     const scheduledTime = new Date(reminder.nextScheduledTime);
     const timeDifference = scheduledTime.getTime() - now.getTime();
     const fifteenMinutesInMs = 15 * 60 * 1000;
-    return timeDifference > 0 && timeDifference < fifteenMinutesInMs;
+    const tenMinutesInMs = 10 * 60 * 1000;
+return timeDifference > tenMinutesInMs && timeDifference < fifteenMinutesInMs;
+
   });
   // console.log("scheduledReminders", scheduledReminders);
   // Loop through each reminder in the filteredReminders array
   filteredReminders.forEach((reminder) => {
     // Calculate the time difference between the current time and the reminder time
-    const timeDiff = reminder.nextScheduledTime - now;
-    if (timeDiff < 10000) {
+    const timeDiff = reminder.nextScheduledTime - now -(10 * 60 * 1000);
+       if (timeDiff < 10000) {
       // Schedule the reminder to be sent at the appropriate time
       const timeoutId = setTimeout(async () => {
         // Remove the scheduled reminder from the list
@@ -311,6 +434,8 @@ cron.schedule("*/10 * * * * *", async () => {
         nextScheduledTime.setHours(nextScheduledTime.getHours() - 5);
         nextScheduledTime.setMinutes(nextScheduledTime.getMinutes() - 30);
 
+        // const options = { timeZone: 'Asia/Kolkata' };
+        // const formattedTime = nextScheduledTime.toLocaleString('en-US', options)
         const mailOptions = {
           to: selectedMembers,
           subject: `Reminder Message: ${reminder.title}`,
