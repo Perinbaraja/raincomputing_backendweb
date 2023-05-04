@@ -60,6 +60,10 @@ const messageSchema = mongoose.Schema(
       }
     }
   ],
+   isReply: {
+    type: Boolean,
+    default: false,
+  },
   isPinned: {
     type: Boolean,
     default: false
