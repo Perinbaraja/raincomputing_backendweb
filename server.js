@@ -88,7 +88,6 @@ const create = async () => {
     socket.on("s_m", async (payload) => {
       try {
         const { receivers } = payload || {};
-
         if (!receivers || !Array.isArray(receivers)) {
           throw new Error(
             "Invalid payload format: receivers property is missing or not an array."
@@ -96,6 +95,7 @@ const create = async () => {
         }
 
         const createdMessage = await Message.create(payload);
+        // console.log("payload :",payload)
         if (createdMessage) {
           socket.emit("s_s", createdMessage);
 
@@ -121,7 +121,42 @@ const create = async () => {
         console.log("Error while emitting message: ", error);
       }
     });
+    //reply message notification by using socket io
+    socket.on("s_r", async (payload) => {
+      console.log("payload :",payload)
+      try {
+        const { receivers } = payload || {};
+        console.log("receivers :",receivers)
+        if (!receivers || !Array.isArray(receivers)) {
+          throw new Error(
+            "Invalid payload format: receivers property is missing or not an array."
+          );
+        }
 
+          const offlineUsers = [];
+          await Promise.all(
+            receivers.map(async (receiver) => {
+              if (!(receiver in users)) {
+                console.log("Receiver is offline: ", receiver);
+                offlineUsers.push(receiver);
+              } else {
+                console.log("Receiver is online: ", receiver);
+                socket.broadcast.to(receiver).emit("r_r", payload);
+              }
+            })
+          );
+
+          if (offlineUsers.length > 0) {
+            const uniqueOfflineReceivers = [...new Set(offlineUsers)];
+            notifications.push(payload);
+          }
+        
+      } catch (error) {
+        console.log("Error while emitting message: ", error);
+      }
+    });
+
+    
     socket.on(
       "send_message",
       async ({
@@ -147,7 +182,6 @@ const create = async () => {
             isAttachment,
             createdAt,
           };
-
           Chat.create(messageQuery, async (err, chat) => {
             if (err) {
               console.log("Chat Error :", err);
