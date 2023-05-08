@@ -1,6 +1,7 @@
 const config = require("../config");
 const Case = require("../models/Case");
 const Group = require("../models/Group");
+const userModel = require("../models/userModel");
 
 const CREATE = async (req, res) => {
   try {
@@ -116,9 +117,13 @@ const UPDATE_CASE = async (req, res) => {
 const ADD_ADMIN = async (req, res) => {
   try {
     const { admin, caseId } = req.body;
-    const updatedCase = await Case.findByIdAndUpdate(caseId, {
-      $push: { admins: admin },
-    },{new: true});
+    const updatedCase = await Case.findByIdAndUpdate(
+      caseId,
+      {
+        $push: { admins: admin },
+      },
+      { new: true }
+    );
     if (updatedCase) {
       return res.json({ success: true, updatedCase });
     }
@@ -129,9 +134,13 @@ const ADD_ADMIN = async (req, res) => {
 const REMOVE_ADMIN = async (req, res) => {
   try {
     const { admin, caseId } = req.body;
-    const updatedCase = await Case.findByIdAndUpdate(caseId, {
-      $pull: { admins: admin },
-    },{new: true});
+    const updatedCase = await Case.findByIdAndUpdate(
+      caseId,
+      {
+        $pull: { admins: admin },
+      },
+      { new: true }
+    );
     if (updatedCase) {
       return res.json({ success: true, updatedCase });
     }
@@ -139,31 +148,7 @@ const REMOVE_ADMIN = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-// const LEAVE_CASE = async (req, res) => {
-//   try {
-//     const { caseId, memberId } = req.body;
 
-//     const updatedCase = await Case.findByIdAndUpdate(caseId, {
-//       $pull: {
-//         caseMembers: { id: memberId },
-//         notifyMembers: memberId
-//       },
-//     }, { new: true });
-
-//     // Remove the member from all the groups
-//     const updatedGroups = await Group.findByIdAndUpdate(
-//       { members: memberId },
-//       { $pull: { members: memberId } }
-//     );
-
-//     if (updatedCase && updatedGroups) {
-//       return res.json({ success: true, updatedCase, updatedGroups });
-//     }
-   
-//   } catch (err) {
-//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
-//   }
-// }
 const LEAVE_CASE = async (req, res) => {
   try {
     const { caseId, memberId } = req.body;
@@ -172,37 +157,85 @@ const LEAVE_CASE = async (req, res) => {
     const groups = await Group.find({ caseId });
 
     // Remove the member from all the related groups
-    const updates = groups.map(group => {
-      return Group.findByIdAndUpdate(group._id, {
-        $pull: { groupMembers: { id: memberId } }
-      }, { new: true });
+    const updates = groups.map((group) => {
+      return Group.findByIdAndUpdate(
+        group._id,
+        {
+          $pull: { groupMembers: { id: memberId } },
+        },
+        { new: true }
+      );
     });
     const updatedGroups = await Promise.all(updates);
 
     // Update the case to remove the member
-    const updatedCase = await Case.findByIdAndUpdate(caseId, {
-      $pull: {
-        caseMembers: { id: memberId },
-        notifyMembers: memberId
+    const updatedCase = await Case.findByIdAndUpdate(
+      caseId,
+      {
+        $pull: {
+          caseMembers: { id: memberId },
+          notifyMembers: memberId,
+        },
       },
-    }, { new: true });
+      { new: true }
+    );
 
     if (updatedCase && updatedGroups) {
       return res.json({ success: true, updatedCase, updatedGroups });
     }
-   
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
-}
+};
+const COMPLETED_CASE = async (req, res) => {
+  try {
+    const { caseId } = req.body;
+    const completedCases = await Case.findByIdAndUpdate(caseId, {
+  
+      isCompleted: true
+    }, { new: true });
 
+    if (completedCases) {
+      // Remove the completed case from the user's cases array
+      const updatedCase = await Case.findByIdAndUpdate(caseId, {
+        caseMembers: [],
+        notifyMembers: []
+      }, { new: true });
+
+      return res.json({ success: true, completedCases:updatedCase });
+    } else {
+      return res.json({ success: false, message: "Failed to complete case" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+const GETCOMPLETEDCASES = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    const allcompletedCases = await Case.find({
+      admins: userId,
+      isCompleted: true
+    });
+    if(allcompletedCases){
+    return res.json({ success: true, allcompletedCases });
+  }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 
 
 module.exports.caseController = {
   LEAVE_CASE,
   CREATE,
   GETBYUSERID,
+  COMPLETED_CASE,
   UPDATE_CASE,
   ADD_ADMIN,
-  REMOVE_ADMIN
+  GETCOMPLETEDCASES,
+  REMOVE_ADMIN,
 };
