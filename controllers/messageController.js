@@ -60,18 +60,16 @@ const REPLYMESSAGE = async (req, res) => {
       sender,
       replyMsg: msg,
     };
-    const replyMessage = await Message.findByIdAndUpdate(
-      id,
-      {
-        $push: { replies: replyQuery },
-      },
-      { new: true }
-    );
+    const replyMessage = await Message.findByIdAndUpdate(id, {
+      $push: { replies: replyQuery }, 
+      isReply: true, // add this line to update the flag
+    },{new:true});
     if (replyMessage) return res.json({ success: true, replyMessage });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+
 
 const GETMESSAGES = async (req, res) => {
   try {
