@@ -37,13 +37,17 @@ const SENDMESSAGE = async (req, res) => {
 };
 const FILENOTES = async (req, res) => {
   try {
-    const { id ,attachmentId,note} = req.body;
-    const findQuery ={
-      _id:id,
-      "attachments.id":attachmentId,
-    }
-    const isFound = await Message.findOneAndUpdate(findQuery,{ "$set": { "attachments.$.note" : note } },{returnDocument:'after'});
-    return res.json({success:true,isFound});
+    const { id, attachmentId, note } = req.body;
+    const findQuery = {
+      _id: id,
+      "attachments.id": attachmentId,
+    };
+    const isFound = await Message.findOneAndUpdate(
+      findQuery,
+      { $set: { "attachments.$.note": note } },
+      { returnDocument: "after" }
+    );
+    return res.json({ success: true, isFound });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
@@ -143,21 +147,21 @@ const DELETEMSG = async (req, res) => {
 const UPDATE_MESSAGE = async (req, res) => {
   try {
     const { _id, messageData, sender } = req.body;
-    
+
     const updateQuery = {
       messageData,
       sender,
-      isEdit:true // If you want to update the sender field
+      isEdit: true, // If you want to update the sender field
     };
-    const updatedMessage = await Message.findByIdAndUpdate(_id, updateQuery, { new: true });
+    const updatedMessage = await Message.findByIdAndUpdate(_id, updateQuery, {
+      new: true,
+    });
     return res.json({ success: true, updatedMessage });
-
   } catch (err) {
     console.log("Case update error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 
 const GETFILES = async (req, res) => {
   try {
@@ -217,7 +221,7 @@ const MAIL_CHAT = async (req, res) => {
   try {
     const { mail, chatRoomId, caseName, groupName } = req.body;
     const chatMessages = await Message.find({
-      groupId:chatRoomId,
+      groupId: chatRoomId,
     }).populate({
       path: "sender",
       select: "firstname lastname email",
@@ -284,63 +288,79 @@ const MAIL_CHAT = async (req, res) => {
       ],
     };
     const mailSent = await sendMail(mailOptions);
-    res.json({ success: true ,mailSent});
+    res.json({ success: true, mailSent });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-const GETSENDERBYNAMEID = async(req,res) => {
-  try{
-    const { sender } =req.body;
+const GETSENDERBYNAMEID = async (req, res) => {
+  try {
+    const { sender } = req.body;
     const senderName = {
       sender,
-      aflag:true,
-    }
-    const senderDetails =await Message.find(senderName).populate({
-      path:"sender",
+      aflag: true,
+    };
+    const senderDetails = await Message.find(senderName).populate({
+      path: "sender",
       select: "firstname lastname",
     });
-    if(senderDetails)
-    return res.json({
-      success:true,
-      senderDetails,
-    });
-  }catch(err) {
-    return res.json({msg: err || config.DEFAULT_RES_ERROR})
+    if (senderDetails)
+      return res.json({
+        success: true,
+        senderDetails,
+      });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
-}
-const GETGROUPBYNAMEID=async(req,res) =>{
-  try{
-    const {caseId}= req.body;
+};
+const GETGROUPBYNAMEID = async (req, res) => {
+  try {
+    const { caseId } = req.body;
     const groupName = {
       caseId,
-      aflag:true,
-    }
+      aflag: true,
+    };
     const caseDetails = await Message.find(groupName).populate({
-      path:"caseId",
+      path: "caseId",
       select: "caseName ",
     });
-    if(caseDetails)
-    return res.json({
-      success:true,
-      caseDetails,
-    });
-
-  }catch(err) {
-    return res.json({msg: err || config.DEFAULT_RES_ERROR})
+    if (caseDetails)
+      return res.json({
+        success: true,
+        caseDetails,
+      });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
-}
-const PINNEDMESSAGE = async(req, res) => {
-  try{
+};
+const PINNEDMESSAGE = async (req, res) => {
+  try {
     const { Id } = req.body;
-const pinnedMessage = await Message.findByIdAndUpdate(Id,{isPinned: true},{new:true});
-if(pinnedMessage)
-return res.json({success: true, message: pinnedMessage})
+    const pinnedMessage = await Message.findByIdAndUpdate(
+      Id,
+      { isPinned: true },
+      { new: true }
+    );
+    if (pinnedMessage)
+      return res.json({ success: true, message: pinnedMessage });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
-  catch(err){ 
-     return res.json({msg: err || config.DEFAULT_RES_ERROR}) 
-    }
-}
+};
+const UNPINNEDMESSAGE = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    const pinnedMessage = await Message.findByIdAndUpdate(
+      Id,
+      { isPinned: false },
+      { new: true }
+    );
+    if (pinnedMessage)
+      return res.json({ success: true, message: pinnedMessage });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
 const GETPINMESSAGES = async (req, res) => {
   try {
     const { groupId } = req.body;
@@ -370,7 +390,8 @@ module.exports.messageController = {
   GETSENDERBYNAMEID,
   GETGROUPBYNAMEID,
   PINNEDMESSAGE,
+  UNPINNEDMESSAGE,
   FILENOTES,
   GETPINMESSAGES,
-  UPDATE_MESSAGE
+  UPDATE_MESSAGE,
 };
