@@ -123,34 +123,34 @@ const create = async () => {
     });
     //reply message notification by using socket io
     socket.on("s_r", async (payload) => {
-      console.log("payload :",payload)
       try {
         const { receivers } = payload || {};
-        console.log("receivers :",receivers)
         if (!receivers || !Array.isArray(receivers)) {
           throw new Error(
             "Invalid payload format: receivers property is missing or not an array."
           );
         }
-
+        const replyMessages = await Message.findByIdAndUpdate(payload.id);
+        if (replyMessages) {
+          socket.emit("r_s", replyMessages);
           const offlineUsers = [];
           await Promise.all(
             receivers.map(async (receiver) => {
-              if (!(receiver in users)) {
+              if (!(receiver in users)) { 
                 console.log("Receiver is offline: ", receiver);
                 offlineUsers.push(receiver);
               } else {
                 console.log("Receiver is online: ", receiver);
-                socket.broadcast.to(receiver).emit("r_r", payload);
+                socket.broadcast.to(receiver).emit("r_r", replyMessages);
               }
             })
           );
 
           if (offlineUsers.length > 0) {
             const uniqueOfflineReceivers = [...new Set(offlineUsers)];
-            notifications.push(payload);
+            notifications.push(replyMessages);
           }
-        
+        }
       } catch (error) {
         console.log("Error while emitting message: ", error);
       }
