@@ -17,8 +17,6 @@ const CREATE = async (req, res) => {
       notifyMembers: members,
       admins: [admin],
       serialNumber,
-      docEvent,
-      docDate
     };
     const createdCase = await Case.create(caseQuery);
     if (createdCase) {
