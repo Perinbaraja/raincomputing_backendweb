@@ -10,6 +10,29 @@ const caseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    serialNumber: {
+      type: String,
+      required: true,
+    },
+    events:[{
+      docEvent:{
+       type: String,
+      },
+      eventText: [
+        {
+          text: { type: String },
+          docDate: { type: Date },
+        },
+      ],
+      receivedDate:{
+        type: Date
+      },
+       createdAt: { type: Date, default: new Date() },
+        aflag:{
+          type:Boolean,
+          default:true
+        }
+    }],
     caseMembers: [
       {
         _id: false,

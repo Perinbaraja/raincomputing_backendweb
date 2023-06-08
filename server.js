@@ -407,6 +407,7 @@ const create = async () => {
   app.use("/api/payment", require("./routes/paymentRoute"));
   app.use("/api/mail", require("./routes/mailReplyRoute"));
   app.use("/api/remainder", require("./routes/remainderRoute"));
+  app.use("/api/event", require("./routes/eventRoute"));
   // return app;
 
   return server;
