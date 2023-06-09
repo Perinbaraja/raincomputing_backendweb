@@ -1,9 +1,20 @@
 const mongoose = require("mongoose");
 const eventSchema = mongoose.Schema({
-  name: {
+  firmId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "RegAttorney",
+  },
+  eventName: {
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+  },
+  interval: {
+    type: Number,
+  },
+  createdAt: { type: Date, default: new Date() },
   aflag: {
     type: Boolean,
   }
