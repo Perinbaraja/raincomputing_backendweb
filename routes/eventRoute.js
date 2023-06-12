@@ -68,4 +68,5 @@ router.get("/getAllEvent", async (req, res) => {
     }
   });
 });
+
 module.exports = router;
