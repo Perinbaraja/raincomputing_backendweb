@@ -408,6 +408,7 @@ const create = async () => {
   app.use("/api/mail", require("./routes/mailReplyRoute"));
   app.use("/api/remainder", require("./routes/remainderRoute"));
   app.use("/api/event", require("./routes/eventRoute"));
+  app.use("/api/interval", require("./routes/intervalRoute"));
   // return app;
 
   return server;

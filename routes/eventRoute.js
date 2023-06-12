@@ -52,7 +52,7 @@ router.put("/eventMasterEdit", async (req, res) => {
   }
 });
 
-router.get("/getAllEvent", async (req, res) => {
+router.post("/getAllCaseEvent", async (req, res) => {
   const { id } = req.body;
   Eventmodel.find({ firmId: id }, (err, data) => {
     if (err) {

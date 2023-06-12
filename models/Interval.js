@@ -15,6 +15,9 @@ const intervalSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "EventModel",
       },
+      eventName: {
+        type: String,
+      },
       intervals: [
         {
           _id: {

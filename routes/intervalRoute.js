@@ -12,6 +12,7 @@ router.post("/eventCreate", async (req, res) => {
         receivedDate: receivedDate,
         events: events.map((event) => ({
           eventId: event.eventId,
+          eventName: event.eventName,
           intervals: event.intervals.map((textObj) => ({
             responseText: textObj.responseText,
             responseDate: textObj.responseDate,
