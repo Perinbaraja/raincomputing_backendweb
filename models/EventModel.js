@@ -11,6 +11,9 @@ const eventSchema = mongoose.Schema({
   description: {
     type: String,
   },
+  responseText:[{
+    type: String,
+  }],
   interval: {
     type: Number,
   },

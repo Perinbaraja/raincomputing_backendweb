@@ -5,7 +5,6 @@ const intervalSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Case",
   },
-
   interval: {
     type: Number,
   },

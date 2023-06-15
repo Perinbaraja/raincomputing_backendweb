@@ -3,12 +3,13 @@ const Eventmodel = require("../models/Eventmodel");
 const router = express.Router();
 router.get("/", (req, res) => res.send("event Route"));
 router.post("/create", async (req, res) => {
-  const { eventName, description, interval, firmId } = req.body;
+  const { eventName, description, interval, firmId,responseText } = req.body;
   const eventData = {
     eventName: eventName,
     description: description,
     interval: interval,
     firmId: firmId,
+    responseText: responseText,
     aflag: true,
   };
   Eventmodel.create(eventData, async (err, event) => {
@@ -26,21 +27,19 @@ router.post("/create", async (req, res) => {
     }
   });
 });
-router.put("/eventMasterEdit", async (req, res) => {
+router.post("/eventUpdate", async (req, res) => {
   try {
-    const { eventId, eventName, description, interval } = req.body;
+    const { eventId, description, interval,responseText } = req.body;
     const updateEvent = {
-      eventName: eventName,
       description: description,
       interval: interval,
+      responseText:responseText
     };
-
     const updateEventData = await Eventmodel.findOneAndUpdate(
       { _id: eventId },
       updateEvent,
       { new: true }
     );
-
     return res.json({
       success: true,
       updateEventData,
@@ -68,5 +67,21 @@ router.post("/getAllCaseEvent", async (req, res) => {
     }
   });
 });
+router.post("/getEventdata", async (req,res) => {
+  const { Id } = req.body;
+   Eventmodel.find({_id: Id} ,(err, event) => {
+    if(err) {
+      return res.json({
+        msg:"not found event"
+      })
+    }else {
+      return res.json({
+        success: true,
+         event
+      })
+    }
+  })
+})
+
 
 module.exports = router;
