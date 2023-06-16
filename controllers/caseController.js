@@ -2,10 +2,11 @@ const config = require("../config");
 const Case = require("../models/Case");
 const Group = require("../models/Group");
 const userModel = require("../models/userModel");
+const axios =require("axios")
 
 const CREATE = async (req, res) => {
   try {
-    const { caseId, caseName, members, admin } = req.body;
+    const { caseId, caseName, members, admin,serialNumber,docDate,docEvent } = req.body;
     const isCaseId = await Case.findOne({ caseId });
     if (isCaseId) return res.json({ msg: "Case Id Already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
@@ -15,6 +16,7 @@ const CREATE = async (req, res) => {
       caseMembers: struturedMembers,
       notifyMembers: members,
       admins: [admin],
+      serialNumber,
     };
     const createdCase = await Case.create(caseQuery);
     if (createdCase) {
@@ -74,7 +76,7 @@ const GETBYUSERID = async (req, res) => {
 
 const UPDATE_CASE = async (req, res) => {
   try {
-    const { id, caseId, caseName, members, admin, deleteIt } = req.body;
+    const { id, caseId, caseName, serialNumber,docEvent,docDate,members, admin, deleteIt } = req.body;
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
         aflag: false,
@@ -86,6 +88,9 @@ const UPDATE_CASE = async (req, res) => {
       const updateQuery = {
         caseName,
         caseId,
+        docDate,
+        docEvent,
+        serialNumber,
         caseMembers: struturedMembers,
         notifyMembers: members,
         // admins: [admin],
@@ -113,7 +118,69 @@ const UPDATE_CASE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+const EVENT_CREATE = async (req, res) => {
+  const { caseId, events } = req.body;
+  try {
+    const cases = await Case.findById(caseId);
+    if (!cases) {
+      return res.status(404).json({ error: "Case not found" });
+    }
+    const newEvent = events.map((event) => ({
+      docDate: event?.docDate,
+      docEvent: event?.docEvent,
+      eventText: event?.eventText.map((textObj) => ({
+        text: textObj.text,
+        docDate: textObj.docDate,
+      })),
+      receivedDate: event?.receivedDate,
+    }));
+    console.log("newEvent:", newEvent);
+    cases.events.push(...newEvent);
+    await cases.save();
+    res.status(200).json({ success: true, data: cases });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+// const EVENT_CREATE = async (req, res) => {
+//   const { caseId, events } = req.body;
+//   try {
+//     const cases = await Case.findById(caseId);
+//     if (!cases) {
+//       return res.status(404).json({ error: "Case not found" });
+//     }
+//     const newEvent = events.map((event) => ({
+//       docDate: event?.docDate,
+//       docEvent: event?.docEvent,
+//       eventText: event?.eventText[0], // Access the first item of eventText array
+//       receivedDate: event?.receivedDate,
+//     }));
+//     console.log("newEvent:", newEvent);
+//     cases.events.push(...newEvent);
+//     await cases.save();
+//     res.status(200).json({ success: true, data: cases });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// };
 
+const GETALLEVENTS = async (req, res) => {
+  try {
+    const { caseId } = req.body;
+    
+    const allEvents = await Case.find({
+       _id:caseId,
+    });
+    if(allEvents){
+      return res.json({ success: true, events: allEvents[0].events });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 const ADD_ADMIN = async (req, res) => {
   try {
     const { admin, caseId } = req.body;
@@ -148,7 +215,6 @@ const REMOVE_ADMIN = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 const LEAVE_CASE = async (req, res) => {
   try {
     const { caseId, memberId } = req.body;
@@ -227,6 +293,29 @@ const GETCOMPLETEDCASES = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
+const SEARCHCASEBYSNO= async (req, res ) =>{
+  try {
+    const { serialNumber } = req.body;
+    const apiUrl = 'https://tsdrapi.uspto.gov/ts/cd/casestatus/';
+    const apiKey = 'Q8kerMro5tRHfe0Kd9x7bgwlTZ6nOt51';
+    const url = `${apiUrl}${serialNumber}/info`;
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'USPTO-API-KEY': apiKey
+      }
+    });
+    // Send the response data back to the client
+   return  res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    // Send an error response to the client
+     return res.json({
+      msg: "not found",
+      error,
+    })
+  }
+}
 
 
 module.exports.caseController = {
@@ -235,7 +324,10 @@ module.exports.caseController = {
   GETBYUSERID,
   COMPLETED_CASE,
   UPDATE_CASE,
+  EVENT_CREATE,
+  GETALLEVENTS,
   ADD_ADMIN,
   GETCOMPLETEDCASES,
   REMOVE_ADMIN,
+  SEARCHCASEBYSNO
 };
