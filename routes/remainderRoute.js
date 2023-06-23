@@ -56,6 +56,44 @@ router.post("/create", async (req, res) => {
     return res.json({ msg: err?.name || err });
   }
 });
+router.post("/getGroupIdByReminder", async (req, res) => {
+  const { groupId } = req.body;
+
+  try {
+    const groupReminders = await RemainderModel.find({ groupId: groupId })
+      .populate({
+        path: "messageId",
+        select: "_id messageData",
+      })
+      .populate({
+        path: "selectedMembers.id",
+        select: "_id firstname lastname email",
+      })
+      .populate({
+        path: "selectedMembers.addedBy",
+        select: "_id firstname lastname email",
+      })
+      .populate({
+        path: "groupId",
+        populate: {
+          path: "groupMembers.id",
+          select: "_id firstname lastname email",
+        },
+      })
+      .exec(); // Execute the query
+
+    return res.json({
+      success: true,
+      groupReminders,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.json({
+      success: false,
+      error: "An error occurred while retrieving reminders.",
+    });
+  }
+});
 
 router.post("/getAllReminders", async (req, res) => {
   try {
@@ -405,15 +443,16 @@ cron.schedule("*/10 * * * * *", async () => {
     const timeDifference = scheduledTime.getTime() - now.getTime();
     const fifteenMinutesInMs = 15 * 60 * 1000;
     const tenMinutesInMs = 10 * 60 * 1000;
-return timeDifference > tenMinutesInMs && timeDifference < fifteenMinutesInMs;
-
+    return (
+      timeDifference > tenMinutesInMs && timeDifference < fifteenMinutesInMs
+    );
   });
   // console.log("scheduledReminders", scheduledReminders);
   // Loop through each reminder in the filteredReminders array
   filteredReminders.forEach((reminder) => {
     // Calculate the time difference between the current time and the reminder time
-    const timeDiff = reminder.nextScheduledTime - now -(10 * 60 * 1000);
-       if (timeDiff < 10000) {
+    const timeDiff = reminder.nextScheduledTime - now - 10 * 60 * 1000;
+    if (timeDiff < 10000) {
       // Schedule the reminder to be sent at the appropriate time
       const timeoutId = setTimeout(async () => {
         // Remove the scheduled reminder from the list
