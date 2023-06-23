@@ -40,7 +40,6 @@ router.post("/register", async (req, res) => {
         });
       }
     } else {
-      console.log("Register");
       const hashPassword = await hashGenerator(password);
       const queryData = {
         firstname: firstname,
@@ -110,7 +109,6 @@ router.post("/login", async (req, res) => {
     else {
       const result = await hashValidator(password, isUser.password);
       if (result) {
-        console.log(result, "result");
         const jwtToken = await JWTtokenGenerator({
           id: isUser._id,
           expire: "30d",
@@ -326,7 +324,6 @@ router.post("/allUser", async (req, res) => {
 });
 
 router.get("/whoiam", isAuthenticated, async (req, res) => {
-  console.log("user id", req.userid);
   return res.json({ success: true, userid: req.userid });
 });
 
@@ -340,7 +337,6 @@ router.get("/logout", async (req, res) => {
 
 router.post("/verifyEmail", async (req, res) => {
   const { verifyToken } = req.body;
-
   if (verifyToken) {
     jwt.verify(verifyToken, config.JWT_SECRET, (err, decodedToken) => {
       if (err) {
@@ -355,7 +351,6 @@ router.post("/verifyEmail", async (req, res) => {
           { verified: true },
           async (err, user) => {
             if (err) {
-              console.log("Token error :", err);
               return res.json({
                 msg: "Invalid token",
                 err,
@@ -402,7 +397,6 @@ router.post("/forgetPassword", async (req, res) => {
         id: email,
         expire: "3600s",
       });
-
       const mailOptions = {
         to: email,
         subject: "Forget Password Rain Computing",
@@ -428,46 +422,40 @@ router.post("/verifyForgetPassword", async (req, res) => {
   const { verifyToken, newPassword } = req.body;
 
   if (verifyToken) {
-    jwt.verify(verifyToken, config.JWT_SECRET, async (err, decodedToken) => {
-      if (err) {
+    try {
+      const decodedToken = jwt.verify(verifyToken, config.JWT_SECRET);
+      const id = decodedToken?.id;
+      const hashPassword = await hashGenerator(newPassword);
+      const user = await userModel.findOneAndUpdate(
+        { email: id },
+       {$set:{ password: hashPassword }},
+        { new: true } // To return the updated user
+      );
+
+      if (user) {
         return res.json({
-          msg: err?.name || "Invalid token",
-          err,
+          success: true,
+          id: user._id,
         });
       } else {
-        console.log("decodedToken : ", decodedToken);
-        const id = decodedToken?.id;
-        const hashPassword = await hashGenerator(newPassword);
-        userModel.findOneAndUpdate(
-          { email: id, verified: true, aflag: true },
-          { password: hashPassword },
-          async (err, user) => {
-            if (err) {
-              console.log("Token error :", err);
-              return res.json({
-                msg: "Invalid token",
-                err,
-              });
-            } else if (user) {
-              return res.json({
-                success: true,
-                id: user._id,
-              });
-            } else {
-              return res.json({
-                msg: "Invalid user",
-              });
-            }
-          }
-        );
+        return res.json({
+          msg: "Invalid user",
+        });
       }
-    });
+    } catch (err) {
+      console.log("Token error:", err);
+      return res.json({
+        msg: err?.name || "Invalid token",
+        err,
+      });
+    }
   } else {
     return res.json({
       msg: "Invalid Action",
     });
   }
 });
+
 
 router.put("/changepassword", async (req,res) => {
   const {userID,password} =req.body;
