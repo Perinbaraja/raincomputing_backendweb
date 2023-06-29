@@ -11,12 +11,20 @@ const eventSchema = mongoose.Schema({
   description: {
     type: String,
   },
-  responseText:[{
-    type: String,
+  events:[{
+    
+     interval: {
+      type: Number
+     },
+     scheduledType: {
+      type: String
+     },
+     responseText :{
+      type: String,
+       },
+
   }],
-  interval: {
-    type: Number,
-  },
+
   createdAt: { type: Date, default: new Date() },
   aflag: {
     type: Boolean,
