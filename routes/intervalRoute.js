@@ -112,7 +112,7 @@ router.post("/getCaseData", async (req, res) => {
 router.post("/getCaseIdIntervals", async (req, res) => {
   const { caseId } = req.body;
   try {
-    const intervals = await Interval.find({ caseId: caseId }).populate({
+    const intervals = await Interval.find({ caseId: caseId,"intervals.isActive": true }).populate({
       path: "events.eventId",
       select: "eventName",
     });
