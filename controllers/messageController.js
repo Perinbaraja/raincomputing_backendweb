@@ -117,24 +117,27 @@ const GETMESSAGEBYID = async (req, res) => {
 const DELETEMSG = async (req, res) => {
   try {
     const { id, deleteIt, createdAt } = req.body;
-    today = new Date();
-    time1 = today.valueOf();
-    date1 = new Date(createdAt);
+    // today = new Date();
+    // time1 = today.valueOf();
+    // date1 = new Date(createdAt);
     //time2 = new Date().getMinutes();
-    time2 = date1.valueOf();
-    time3 = time1 - time2;
+    // time2 = date1.valueOf();
+    // time3 = time1 - time2;
     if (deleteIt) {
-      if (time3 < 60000) {
+      // if (time3 < 60000) {
         const deletedmsg = await Message.findByIdAndUpdate(id, {
           aflag: false,
         });
         if (deletedmsg)
-          return res.json({ success: true, deletedmsg, time1, time2, time3 });
-      } else {
-        return res.json({
-          msg: "Unable to Delete later",
-        });
-      }
+          return res.json({ success: true, DeletedMessage:deletedmsg
+            //  time1, time2, time3 
+            });
+      // } 
+      // else {
+      //   return res.json({
+      //     msg: "Unable to Delete later",
+      //   });
+      // }
     } else {
       return res.json({
         msg: "Unable to Delete",
@@ -379,6 +382,27 @@ const GETPINMESSAGES = async (req, res) => {
   }
 };
 
+// const DELETE_CHAT = async (req, res) => {
+//   try {
+//     const { id } = req.body;
+//     console.log("rk req.body:",req?.body)
+//     console.log("rk id:",id)
+//     if (id) {
+//       const deletedChat = await Group.findByIdAndUpdate(id, {
+//         aflag: false,
+//       },{new:true});
+//     console.log("rk deletedChat:",deletedChat)
+//       if (deletedChat)
+//         return res.json({ success: true ,res:deletedChat});
+//     } else{
+//       return res.json({ success:false });
+//     }
+//    }catch (err) {
+//     console.log("Chat delete error", err);
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+//    };
+
 module.exports.messageController = {
   SENDMESSAGE,
   GETMESSAGES,
@@ -394,4 +418,5 @@ module.exports.messageController = {
   FILENOTES,
   GETPINMESSAGES,
   UPDATE_MESSAGE,
+  // DELETE_CHAT
 };
