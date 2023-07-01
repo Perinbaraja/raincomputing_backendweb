@@ -207,7 +207,7 @@ router.post("/getintervalIdData", async (req, res) => {
   try {
     Interval.findOne(
       { "events.intervals._id": intervalId },
-      { "events.intervals.$": 1 }
+     
     )
       .populate({
         path: "events.intervals.note.userId",
