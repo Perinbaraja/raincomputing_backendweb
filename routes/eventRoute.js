@@ -3,13 +3,16 @@ const Eventmodel = require("../models/Eventmodel");
 const router = express.Router();
 router.get("/", (req, res) => res.send("event Route"));
 router.post("/create", async (req, res) => {
-  const { eventName, description, interval, firmId,responseText } = req.body;
+  const { eventName, description, events ,firmId} = req.body;
   const eventData = {
     eventName: eventName,
-    description: description,
-    interval: interval,
     firmId: firmId,
-    responseText: responseText,
+    description: description,
+    events: events.map((event) => ({
+     scheduledType: event.scheduledType,
+     responseText: event.responseText,
+     interval: event.interval
+    })),
     aflag: true,
   };
   Eventmodel.create(eventData, async (err, event) => {
@@ -28,28 +31,34 @@ router.post("/create", async (req, res) => {
   });
 });
 router.post("/eventUpdate", async (req, res) => {
-  try {
-    const { eventId, description, interval,responseText } = req.body;
-    const updateEvent = {
-      description: description,
-      interval: interval,
-      responseText:responseText
-    };
-    const updateEventData = await Eventmodel.findOneAndUpdate(
-      { _id: eventId },
-      updateEvent,
-      { new: true }
-    );
-    return res.json({
-      success: true,
-      updateEventData,
-    });
-  } catch (err) {
-    return res.json({
-      msg: err,
-    });
-  }
+  const {  events,eventId} = req.body;
+  const eventData = {
+
+    events: events.map((event) => ({
+      _id: event._id,
+      scheduledType: event.scheduledType,
+      responseText: event.responseText,
+      interval: event.interval,
+    })),
+    aflag: true,
+  };
+  
+  Eventmodel.findByIdAndUpdate(eventId, eventData, { new: true }, (err, updatedEvent) => {
+    if (err) {
+      return res.json({
+        msg: "Failed to update event",
+        error: err,
+      });
+    } else {
+      return res.json({
+        success: true,
+        msg: "Event updated successfully",
+        event: updatedEvent,
+      });
+    }
+  });
 });
+
 
 router.post("/getAllCaseEvent", async (req, res) => {
   const { id } = req.body;

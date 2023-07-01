@@ -35,12 +35,20 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
       isGroup: false,
       admins: sortedmembers,
     }).populate("groupMembers.id", "firstname lastname email profilePic");
-    if (isChat) return res.json({ success: true, group: isChat });
+    
+    if (isChat) {
+      isChat.aflag = true; // Add flag with value true
+      await isChat.save(); // Save the updated document
+      return res.json({ success: true, group: isChat });
+    }
+    
     const struturedMembers = sortedmembers.map((m) => ({ id: m }));
     const chatQuery = {
       groupMembers: struturedMembers,
       admins: sortedmembers,
+      aflag: true, // Add flag with value true for the new chat
     };
+        
     const createdChat = await Group.create(chatQuery);
     if (createdChat) {
       const newChat = await Group.findById(createdChat._id).populate(
@@ -117,7 +125,15 @@ const UPDATE_GROUP = async (req, res) => {
       });
       if (deletedGroup)
         return res.json({ success: true, groupName: deletedGroup?.groupName });
-    } else {
+    } 
+    else if(!deleteIt){
+      const deletedGroup = await Group.findByIdAndUpdate(groupId, {
+        aflag: true,
+      });
+      if (deletedGroup)
+        return res.json({ success: true, groupName: deletedGroup?.groupName });
+    }
+    else {
       const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
       const updateQuery = {
         groupName,
