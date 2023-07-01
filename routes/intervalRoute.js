@@ -232,7 +232,7 @@ router.post("/getintervalIdData", async (req, res) => {
 
         const event = interval.events[0]; // Assuming you want the first event
         const intervalData = event.intervals.find(
-          (int) => int._id.toString() === intervalId
+          (int) => int._id && int._id.toString() === intervalId
         );
 
         if (!intervalData) {
@@ -251,6 +251,11 @@ router.post("/getintervalIdData", async (req, res) => {
       });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({
+      success: false,
+      msg: "An error occurred",
+      error: err.message,
+    });
   }
 });
 router.post("/intervalIdActive", async (req, res) => {
