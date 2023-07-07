@@ -555,5 +555,34 @@ router.post("/profilePicRemove", async (req, res) => {
     });
   }
 });
+router.post('/notifySound', async (req, res) => {
+  const { _id, isNotifySound } = req.body;
+
+  try {
+    const updatedDocument = await userModel.findOneAndUpdate(
+      { _id: _id },
+      { $set: { isNotifySound } },
+      { new: true }
+    );
+
+    const isUser = updatedDocument.toObject();
+
+    return res.json({
+      success: true,
+      userID: isUser._id,
+      firstname: isUser.firstname,
+      lastname: isUser.lastname,
+      email: isUser.email,
+      attorneyStatus: isUser.attorneyStatus,
+      appointmentStatus: isUser.appointmentStatus,
+      profilePic: isUser.profilePic,
+      isProfilePic: isUser.isProfilePic,
+      isNotifySound: isUser.isNotifySound
+    });
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ success: false, error: 'Failed to update document' });
+  }
+});
 
 module.exports = router;

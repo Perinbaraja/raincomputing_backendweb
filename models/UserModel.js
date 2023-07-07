@@ -37,6 +37,10 @@ const userSchema = mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+   isNotifySound: {
+    type: Boolean,
+    default: false,
+  },
   attorneyStatus: {
     type: String,
   },
