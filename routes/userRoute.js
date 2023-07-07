@@ -428,7 +428,7 @@ router.post("/verifyForgetPassword", async (req, res) => {
       const hashPassword = await hashGenerator(newPassword);
       const user = await userModel.findOneAndUpdate(
         { email: id },
-       {$set:{ password: hashPassword }},
+        { $set: { password: hashPassword } },
         { new: true } // To return the updated user
       );
 
@@ -457,70 +457,83 @@ router.post("/verifyForgetPassword", async (req, res) => {
 });
 
 
-router.put("/changepassword", async (req,res) => {
-  const {userID,password} =req.body;
-  const user = await userModel.findOne({_id:userID});
-  if(user){
-    const newPassword = await  hashGenerator(password);
-    const userData =await userModel.findByIdAndUpdate({_id: userID},{$set:{
-      password:newPassword
-    }})
+router.put("/changepassword", async (req, res) => {
+  const { userID, password } = req.body;
+  const user = await userModel.findOne({ _id: userID });
+  if (user) {
+    const newPassword = await hashGenerator(password);
+    const userData = await userModel.findByIdAndUpdate({ _id: userID }, {
+      $set: {
+        password: newPassword
+      }
+    })
     res.status(200).send({
-        success: true,
-        userID: user._id,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
-        attorneyStatus: user.attorneyStatus,
-        profilePic: user.profilePic,
-        appointmentStatus: user.appointmentStatus,
-        msg:"password changed successfully"
-      });
-  }else{
-    res.status(200).send({success:false,msg:"user does not "});
+      success: true,
+      userID: user._id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      attorneyStatus: user.attorneyStatus,
+      profilePic: user.profilePic,
+      appointmentStatus: user.appointmentStatus,
+      msg: "password changed successfully"
+    });
+  } else {
+    res.status(200).send({ success: false, msg: "user does not " });
   }
 })
 
 router.put("/profilePicUpdate", async (req, res) => {
-  const { email, profilePic } = req.body;
-  // console.log("propic", req.body);
+  const { email, profilePic, isProfilePic } = req.body;
   const queryData = {
     profilePic: profilePic,
+    isProfilePic: true
   };
 
-  userModel.findOneAndUpdate({ email: email }, queryData, (err, user) => {
-    if (err) {
+  if (isProfilePic) {
+    const res1 = await userModel.findOneAndUpdate(email, { $set: { isProfilePic: false } }, { new: true })
+    if (res1) {
       return res.json({
-        msg: err,
-      });
-    } else if (user) {
-      userModel.findOne({ email: email }, (err, isUser) => {
-        if (err) {
-          return res.json({
-            msg: "Error Occured",
-            error: err,
-          });
-        } else if (!isUser) {
-          return res.json({
-            msg: "User not Found",
-          });
-        } else {
-          isUser.password = null;
-          isUser.__v = null;
-          return res.json({
-            success: true,
-            userID: isUser._id,
-            firstname: isUser.firstname,
-            lastname: isUser.lastname,
-            email: isUser.email,
-            attorneyStatus: isUser.attorneyStatus,
-            appointmentStatus: isUser.appointmentStatus,
-            profilePic: isUser.profilePic,
-          });
-        }
+        success: true,
+        res: res1
       });
     }
-  });
+  } else {
+    userModel.findOneAndUpdate({ email: email }, { $set: queryData }, (err, user) => {
+      if (err) {
+        return res.json({
+          msg: err,
+        });
+      } else if (user) {
+        userModel.findOne({ email: email }, (err, isUser) => {
+          if (err) {
+            return res.json({
+              msg: "Error Occured",
+              error: err,
+            });
+          } else if (!isUser) {
+            return res.json({
+              msg: "User not Found",
+            });
+          } else {
+            isUser.password = null;
+            isUser.__v = null;
+            return res.json({
+              success: true,
+              userID: isUser._id,
+              firstname: isUser.firstname,
+              lastname: isUser.lastname,
+              email: isUser.email,
+              attorneyStatus: isUser.attorneyStatus,
+              appointmentStatus: isUser.appointmentStatus,
+              profilePic: isUser.profilePic,
+              isProfilePic: isUser?.isProfilePic
+            });
+          }
+        });
+      }
+    });
+  }
 });
 
 module.exports = router;
