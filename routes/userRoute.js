@@ -484,54 +484,74 @@ router.put("/changepassword", async (req, res) => {
 })
 
 router.put("/profilePicUpdate", async (req, res) => {
-  const { email, profilePic, isProfilePic } = req.body;
+  const { email, profilePic } = req.body;
+  // console.log("propic", req.body);
   const queryData = {
     profilePic: profilePic,
-    isProfilePic: true
   };
-
-  if (isProfilePic) {
-    const res1 = await userModel.findOneAndUpdate(email, { $set: { isProfilePic: false } }, { new: true })
-    if (res1) {
+  userModel.findOneAndUpdate({ email: email }, queryData, (err, user) => {
+    if (err) {
       return res.json({
-        success: true,
-        res: res1
+        msg: err,
+      });
+    } else if (user) {
+      userModel.findOne({ email: email }, (err, isUser) => {
+        if (err) {
+          return res.json({
+            msg: "Error Occured",
+            error: err,
+          });
+        } else if (!isUser) {
+          return res.json({
+            msg: "User not Found",
+          });
+        } else {
+          isUser.password = null;
+          isUser.__v = null;
+          return res.json({
+            success: true,
+            userID: isUser._id,
+            firstname: isUser.firstname,
+            lastname: isUser.lastname,
+            email: isUser.email,
+            attorneyStatus: isUser.attorneyStatus,
+            appointmentStatus: isUser.appointmentStatus,
+            profilePic: isUser.profilePic,
+          });
+        }
       });
     }
-  } else {
-    userModel.findOneAndUpdate({ email: email }, { $set: queryData }, (err, user) => {
-      if (err) {
-        return res.json({
-          msg: err,
-        });
-      } else if (user) {
-        userModel.findOne({ email: email }, (err, isUser) => {
-          if (err) {
-            return res.json({
-              msg: "Error Occured",
-              error: err,
-            });
-          } else if (!isUser) {
-            return res.json({
-              msg: "User not Found",
-            });
-          } else {
-            isUser.password = null;
-            isUser.__v = null;
-            return res.json({
-              success: true,
-              userID: isUser._id,
-              firstname: isUser.firstname,
-              lastname: isUser.lastname,
-              email: isUser.email,
-              attorneyStatus: isUser.attorneyStatus,
-              appointmentStatus: isUser.appointmentStatus,
-              profilePic: isUser.profilePic,
-              isProfilePic: isUser?.isProfilePic
-            });
-          }
-        });
-      }
+  });
+})
+router.post("/profilePicRemove", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const updatedUser = await userModel.findOneAndUpdate(
+      { email: email },
+      { $unset: { profilePic: 1 } },
+      { new: true }
+    ).exec();
+
+    if (!updatedUser) {
+      return res.json({
+        msg: "User not Found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      userID: updatedUser._id,
+      firstname: updatedUser.firstname,
+      lastname: updatedUser.lastname,
+      email: updatedUser.email,
+      attorneyStatus: updatedUser.attorneyStatus,
+      appointmentStatus: updatedUser.appointmentStatus,
+    });
+  } catch (err) {
+    return res.json({
+      msg: "Error Occurred",
+      error: err,
     });
   }
 });
