@@ -141,6 +141,7 @@ router.post("/login", async (req, res) => {
           attorneyStatus: isUser.attorneyStatus,
           appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
+          notificationSound: isUser.notificationSound,
           admin: true,
         });
         //   }
@@ -428,7 +429,7 @@ router.post("/verifyForgetPassword", async (req, res) => {
       const hashPassword = await hashGenerator(newPassword);
       const user = await userModel.findOneAndUpdate(
         { email: id },
-       {$set:{ password: hashPassword }},
+        { $set: { password: hashPassword } },
         { new: true } // To return the updated user
       );
 
@@ -457,27 +458,29 @@ router.post("/verifyForgetPassword", async (req, res) => {
 });
 
 
-router.put("/changepassword", async (req,res) => {
-  const {userID,password} =req.body;
-  const user = await userModel.findOne({_id:userID});
-  if(user){
-    const newPassword = await  hashGenerator(password);
-    const userData =await userModel.findByIdAndUpdate({_id: userID},{$set:{
-      password:newPassword
-    }})
+router.put("/changepassword", async (req, res) => {
+  const { userID, password } = req.body;
+  const user = await userModel.findOne({ _id: userID });
+  if (user) {
+    const newPassword = await hashGenerator(password);
+    const userData = await userModel.findByIdAndUpdate({ _id: userID }, {
+      $set: {
+        password: newPassword
+      }
+    })
     res.status(200).send({
-        success: true,
-        userID: user._id,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
-        attorneyStatus: user.attorneyStatus,
-        profilePic: user.profilePic,
-        appointmentStatus: user.appointmentStatus,
-        msg:"password changed successfully"
-      });
-  }else{
-    res.status(200).send({success:false,msg:"user does not "});
+      success: true,
+      userID: user._id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      attorneyStatus: user.attorneyStatus,
+      profilePic: user.profilePic,
+      appointmentStatus: user.appointmentStatus,
+      msg: "password changed successfully"
+    });
+  } else {
+    res.status(200).send({ success: false, msg: "user does not " });
   }
 })
 
@@ -487,7 +490,6 @@ router.put("/profilePicUpdate", async (req, res) => {
   const queryData = {
     profilePic: profilePic,
   };
-
   userModel.findOneAndUpdate({ email: email }, queryData, (err, user) => {
     if (err) {
       return res.json({
@@ -521,6 +523,127 @@ router.put("/profilePicUpdate", async (req, res) => {
       });
     }
   });
+})
+router.post("/profilePicRemove", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const updatedUser = await userModel.findOneAndUpdate(
+      { email: email },
+      { $unset: { profilePic: 1 } },
+      { new: true }
+    ).exec();
+
+    if (!updatedUser) {
+      return res.json({
+        msg: "User not Found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      userID: updatedUser._id,
+      firstname: updatedUser.firstname,
+      lastname: updatedUser.lastname,
+      email: updatedUser.email,
+      attorneyStatus: updatedUser.attorneyStatus,
+      appointmentStatus: updatedUser.appointmentStatus,
+    });
+  } catch (err) {
+    return res.json({
+      msg: "Error Occurred",
+      error: err,
+    });
+  }
 });
+router.post('/notifySound', async (req, res) => {
+  const { _id, isNotifySound } = req.body;
+
+  try {
+    const updatedDocument = await userModel.findOneAndUpdate(
+      { _id: _id },
+      { $set: { isNotifySound } },
+      { new: true }
+    );
+
+    const isUser = updatedDocument.toObject();
+
+    return res.json({
+      success: true,
+      userID: isUser._id,
+      firstname: isUser.firstname,
+      lastname: isUser.lastname,
+      email: isUser.email,
+      attorneyStatus: isUser.attorneyStatus,
+      appointmentStatus: isUser.appointmentStatus,
+      profilePic: isUser.profilePic,
+      isProfilePic: isUser.isProfilePic,
+      isNotifySound: isUser.isNotifySound
+    });
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ success: false, error: 'Failed to update document' });
+  }
+});
+router.post('/notification-sound', async (req, res) => {
+  try {
+    const { _id, notificationSound } = req.body;
+
+    // Find the user by userId
+    let user = await userModel.findByIdAndUpdate({ _id });
+
+    // If the user is not found, create a new user record
+    if (!user) {
+      user = await userModel.findByIdAndUpdate({ _id, notificationSound });
+    } else {
+      // Update the notification sound
+      user.notificationSound = notificationSound;
+      await user.save();
+    }
+
+    // Retrieve the updated user information
+    const isUser = user.toObject();
+
+    return res.json({
+      success: true,
+      userID: isUser._id,
+      firstname: isUser.firstname,
+      lastname: isUser.lastname,
+      email: isUser.email,
+      attorneyStatus: isUser.attorneyStatus,
+      appointmentStatus: isUser.appointmentStatus,
+      profilePic: isUser.profilePic,
+      isProfilePic: isUser.isProfilePic,
+      isNotifySound: isUser.isNotifySound,
+      notificationSound: isUser.notificationSound
+    });
+  } catch (error) {
+    console.error('Error updating notification sound:', error);
+    res.status(500).json({ error: 'An error occurred while updating the notification sound' });
+  }
+});
+
+
+// Get the notification sound for a user
+router.get('/getnotification-sound', async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Find the user by userId
+    const user = await userModel.findOne({ _id });
+
+    if (!user) {
+      // User not found, return a default sound or appropriate response
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      // Return the user's notification sound
+      res.status(200).json({ notificationSound: user.notificationSound });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while retrieving the notification sound' });
+  }
+});
+
+module.exports = router;
 
 module.exports = router;

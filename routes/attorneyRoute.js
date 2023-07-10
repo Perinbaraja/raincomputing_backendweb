@@ -149,7 +149,7 @@ router.post("/getAllAttorney", async (req, res) => {
   RegAttorneyModel.find({ _id: { $ne: attorneyID }, status: "approved" })
     .populate({
       path: "regUser",
-      select: "firstname lastname email profilePic",
+      select: "firstname lastname email profilePic isProfilePic",
     })
     .exec((err, attorneys) => {
       if (err) {
@@ -170,7 +170,7 @@ router.post("/regAttorneyDetails", async (req, res) => {
   RegAttorneyModel.findById({ _id: id })
     .populate({
       path: "regUser",
-      select: "firstname lastname email profilePic",
+      select: "firstname lastname email profilePic isProfilePic",
     })
     .exec((err, regAttorneydetails) => {
       if (err) {
