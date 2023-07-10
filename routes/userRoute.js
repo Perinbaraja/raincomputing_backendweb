@@ -141,6 +141,7 @@ router.post("/login", async (req, res) => {
           attorneyStatus: isUser.attorneyStatus,
           appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
+          notificationSound: isUser.notificationSound,
           admin: true,
         });
         //   }
@@ -584,5 +585,65 @@ router.post('/notifySound', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to update document' });
   }
 });
+router.post('/notification-sound', async (req, res) => {
+  try {
+    const { _id, notificationSound } = req.body;
+
+    // Find the user by userId
+    let user = await userModel.findByIdAndUpdate({ _id });
+
+    // If the user is not found, create a new user record
+    if (!user) {
+      user = await userModel.findByIdAndUpdate({ _id, notificationSound });
+    } else {
+      // Update the notification sound
+      user.notificationSound = notificationSound;
+      await user.save();
+    }
+
+    // Retrieve the updated user information
+    const isUser = user.toObject();
+
+    return res.json({
+      success: true,
+      userID: isUser._id,
+      firstname: isUser.firstname,
+      lastname: isUser.lastname,
+      email: isUser.email,
+      attorneyStatus: isUser.attorneyStatus,
+      appointmentStatus: isUser.appointmentStatus,
+      profilePic: isUser.profilePic,
+      isProfilePic: isUser.isProfilePic,
+      isNotifySound: isUser.isNotifySound,
+      notificationSound: isUser.notificationSound
+    });
+  } catch (error) {
+    console.error('Error updating notification sound:', error);
+    res.status(500).json({ error: 'An error occurred while updating the notification sound' });
+  }
+});
+
+
+// Get the notification sound for a user
+router.get('/getnotification-sound', async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Find the user by userId
+    const user = await userModel.findOne({ _id });
+
+    if (!user) {
+      // User not found, return a default sound or appropriate response
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      // Return the user's notification sound
+      res.status(200).json({ notificationSound: user.notificationSound });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while retrieving the notification sound' });
+  }
+});
+
+module.exports = router;
 
 module.exports = router;
