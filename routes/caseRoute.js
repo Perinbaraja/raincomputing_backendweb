@@ -13,5 +13,8 @@ router.post("/leaveGroup", caseController.LEAVE_CASE);
 router.post("/completedGroup", caseController.COMPLETED_CASE);
 router.post("/allcompletedGroup", caseController.GETCOMPLETEDCASES);
 router.post("/searchCasebySno", caseController.SEARCHCASEBYSNO);
+router.post("/createSubCase", caseController.CREATE_SUBCASE);
+router.post("/caseIdbySubCase", caseController.CASEIDBY_SUBCASES);
+router.post("/allSubCases", caseController. GET_ALL_SUBCASES);
 
 module.exports = router;

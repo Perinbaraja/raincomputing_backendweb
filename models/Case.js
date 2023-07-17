@@ -77,6 +77,12 @@ const caseSchema = mongoose.Schema(
     isCompleted: {
       type: Boolean,
       default: false,
+    },
+    isSubcase: {
+      type: Boolean
+    },
+    maincaseId: {
+      type: String,
     }
   },
   { timestamps: true }

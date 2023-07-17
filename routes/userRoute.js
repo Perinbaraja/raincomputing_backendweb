@@ -46,7 +46,7 @@ router.post("/register", async (req, res) => {
         lastname: lastname,
         email: email,
         password: hashPassword,
-
+        isNotifySound: true,
         aflag: true,
       };
       userModel.create(queryData, async (err, user) => {
@@ -142,6 +142,7 @@ router.post("/login", async (req, res) => {
           appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
           notificationSound: isUser.notificationSound,
+          isNotifySound: true,
           admin: true,
         });
         //   }
