@@ -79,41 +79,55 @@ const GETBYUSERID = async (req, res) => {
 
 const UPDATE_CASE = async (req, res) => {
   try {
-    const { id, caseId, caseName, serialNumber,docEvent,docDate,members, admin, deleteIt } = req.body;
+    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt } = req.body;
+
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
         aflag: false,
       });
-      if (deletedCase)
-        return res.json({ success: true, caseId: deletedCase?.caseId });
+
+      if (deletedCase) {
+        return res.json({
+          success: true,
+          caseId: deletedCase.caseId,
+        });
+      }
     } else {
-      const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+      const structuredMembers = members.map((m) => ({ id: m, addedBy: admin }));
       const updateQuery = {
         caseName,
         caseId,
         docDate,
         docEvent,
         serialNumber,
-        caseMembers: struturedMembers,
+        caseMembers: structuredMembers,
         notifyMembers: members,
-        // admins: [admin],
       };
-      const updatedCase = await Case.findByIdAndUpdate(id, updateQuery);
+
+      const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, { new: true })
+        .populate([
+          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.addedBy", select: "firstname lastname" },
+        ]);
+
       if (updatedCase) {
         const everyoneGroup = await Group.findOne({
           caseId: id,
           isParent: true,
         });
+
         if (everyoneGroup) {
           const updateQueryForGroup = {
-            groupMembers: struturedMembers,
+            groupMembers: structuredMembers,
           };
-          await Group.findByIdAndUpdate(
-            everyoneGroup?._id,
-            updateQueryForGroup
-          );
+
+          await Group.findByIdAndUpdate(everyoneGroup._id, updateQueryForGroup);
         }
-        return res.json({ success: true, caseId });
+
+        return res.json({
+          success: true,
+          updatedCase,
+        });
       }
     }
   } catch (err) {
@@ -121,6 +135,8 @@ const UPDATE_CASE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+
+
   const EVENT_CREATE = async (req, res) => {
     const { caseId, events} = req.body;
     try {
