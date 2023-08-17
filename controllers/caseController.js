@@ -434,23 +434,29 @@ const CASEIDBY_SUBCASES = async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve subcases" });
   }
 };
-const GET_ALL_SUBCASES = async (req,res) => {
 
+const GET_ALL_SUBCASES = async (req, res) => {  
   try {
-  const allsubCases = await Case.find({isSubcase : true})
-  if(allsubCases ) {
-    return res.json({
-      success : true,
-      allsubCases
-    })
-  }
-  }catch (error) {
+    const allsubCases = await Case.find({ isSubcase: true })
+      .populate([
+        { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+        { path: "caseMembers.addedBy", select: "firstname lastname" },
+        // Add more population paths here if needed
+      ])
+      .exec();
+
+    if (allsubCases) {
+      return res.json({
+        success: true,
+        allsubCases
+      });
+    }
+  } catch (error) {
     // Handle any errors that occur during the process
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve subcases" });
   }
-}
-
+};
 
 
 
