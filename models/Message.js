@@ -91,6 +91,12 @@ const messageSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    maincaseId: {
+      type: String
+    },
+    ThreadId: {
+       type: String
+    },
     cleardBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

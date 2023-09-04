@@ -3,7 +3,7 @@ const Group = require("../models/Group");
 
 const CREATE_GROUP = async (req, res) => {
   try {
-    const { caseId, groupName, members, admin, color } = req.body;
+    const { caseId, groupName, members, admin, color,threadId } = req.body;
     const isGroupExisting = await Group.findOne({
       caseId,
       groupName,
@@ -19,6 +19,7 @@ const CREATE_GROUP = async (req, res) => {
       isGroup: true,
       admins: [admin],
       color: color,
+      threadId:threadId
     };
     const createdGroup = await Group.create(groupQuery);
     if (createdGroup) return res.json({ success: true, group: createdGroup });
