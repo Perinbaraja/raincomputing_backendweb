@@ -224,7 +224,7 @@ async function searchMail(req, res) {
   }
 }
 
-setInterval(searchMail, 60000);
+setInterval(searchMail, 6000);
 
 // async function searchMail(req, res) {
 //   try {
