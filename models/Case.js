@@ -10,10 +10,13 @@ const caseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    serialNumber: {
-      type: String,
-      required: true,
+    clientName: {
+      type: String
     },
+    // serialNumber: {
+    //   type: String,
+    //   required: true,
+    // },
     events:[{
       docEvent:{
        type: String,
@@ -83,6 +86,9 @@ const caseSchema = mongoose.Schema(
     },
     maincaseId: {
       type: String,
+    },
+    threadId: {
+      type: String
     }
   },
   { timestamps: true }

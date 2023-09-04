@@ -6,7 +6,7 @@ const axios =require("axios")
 
 const CREATE = async (req, res) => {
   try {
-    const { caseId, caseName, members, admin,serialNumber,docDate,docEvent,maincaseId ,isSubcase} = req.body;
+    const { caseId, caseName, members, admin,serialNumber,docDate,docEvent,maincaseId ,isSubcase,threadId} = req.body;
     const isCaseId = await Case.findOne({ caseId });
     if (isCaseId) return res.json({ msg: "Case Id Already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
@@ -18,7 +18,8 @@ const CREATE = async (req, res) => {
       admins: [admin],
       serialNumber,
       maincaseId:maincaseId,
-      isSubcase: isSubcase
+      isSubcase: isSubcase,
+      threadId:threadId
     };
     const createdCase = await Case.create(caseQuery);
     if (createdCase) {
@@ -27,6 +28,7 @@ const CREATE = async (req, res) => {
         groupMembers: struturedMembers,
         isGroup: true,
         admins: [admin],
+        threadId: createdCase?.threadId
       };
       const createdGroup = await Group.create(groupQuery);
       if (createdGroup)
@@ -434,23 +436,29 @@ const CASEIDBY_SUBCASES = async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve subcases" });
   }
 };
-const GET_ALL_SUBCASES = async (req,res) => {
 
+const GET_ALL_SUBCASES = async (req, res) => {  
   try {
-  const allsubCases = await Case.find({isSubcase : true})
-  if(allsubCases ) {
-    return res.json({
-      success : true,
-      allsubCases
-    })
-  }
-  }catch (error) {
+    const allsubCases = await Case.find({ isSubcase: true })
+      .populate([
+        { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+        { path: "caseMembers.addedBy", select: "firstname lastname" },
+        // Add more population paths here if needed
+      ])
+      .exec();
+
+    if (allsubCases) {
+      return res.json({
+        success: true,
+        allsubCases
+      });
+    }
+  } catch (error) {
     // Handle any errors that occur during the process
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve subcases" });
   }
-}
-
+};
 
 
 

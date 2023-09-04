@@ -5,8 +5,9 @@ require("dotenv").config();
 const Group = require("../models/Group");
 const Message = require("../models/Message");
 const GridFSUploader = require("../helpers/GridFSUploader");
+const { default: mongoose } = require("mongoose");
 
-const mimeTypes = ["image/jpeg","image/png", "application/pdf"];
+const mimeTypes = ["image/jpeg", "image/png", "application/pdf"];
 
 const oAuth2Client = new google.auth.OAuth2(
   config.MAIL_CLIENT_ID,
@@ -61,10 +62,11 @@ async function getDrafts(req, res) {
 
 async function searchMail(req, res) {
   try {
-    const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=RCID is:UNREAD&INBOX`;
+    const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=@gmail.com is:UNREAD&INBOX`;
     const { token } = await oAuth2Client.getAccessToken();
     const config = generateConfig(url, token);
     const response = await axios(config);
+    // console.log("response gk",response)
     let sendMessages = [];
     if (response?.data?.messages?.length > 0) {
       Promise.all(
@@ -78,19 +80,29 @@ async function searchMail(req, res) {
           let validAttachments = [];
           let parts = [payload];
 
-          const groupId = payload?.headers
-            .find((h) => h?.name === "Subject")
-            ?.value.split("__")[1];
+          const subject = payload?.headers.find(
+            (h) => h?.name === "Subject"
+          )?.value;
+
+          const mail = messsageData?.snippet;
+
+          // Extract emailId using a regular expression
+          const emailIdMatch = mail.match(/Thread Id:\s*([\d]+)/);
+
+          const mailId = emailIdMatch?.[1] ?? "EmailId not found in snippet";
+
+          // The rest of your code
+          // const objectIdMailId = mongoose.Types.ObjectId(mailId);
 
           const senderEmail = payload?.headers
             .find((h) => h?.name === "From")
             ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
 
-          const group = await Group.findById(groupId).populate({
+          const group = await Group.findOne({ threadId: mailId }).populate({
             path: "groupMembers.id",
             select: "email",
           });
-
+          const groupId = group?._id;
           const handleDocUpload = async ({
             fileName,
             mailId,
@@ -119,13 +131,19 @@ async function searchMail(req, res) {
               if (part.parts) {
                 parts = parts.concat(part.parts);
               }
-
-              if (part.mimeType === "text/plain" && validMessageData === "") {
-                validMessageData = Buffer.from(
-                  part?.body?.data,
-                  "base64"
-                ).toString();
+              // console.log("part gk",part?.body?.data)
+              // if (part.mimeType === "text/plain" && validMessageData === "") {
+              //   validMessageData = Buffer.from(
+              //     part?.body?.data,
+              //     "base64"
+              //   ).toString();
+              // }
+              if (part.mimeType === "text/html" && validMessageData === "") {
+                validMessageData =
+                  `<strong>Subject: ${subject}</strong><br><br>` +
+                  Buffer.from(part?.body?.data, "base64").toString();
               }
+
               if (mimeTypes.includes(part?.mimeType)) {
                 await handleDocUpload({
                   fileName: part?.filename || "mail document",
@@ -161,7 +179,6 @@ async function searchMail(req, res) {
             }
 
             const createdMessage = await Message.create(messageQuery);
-
             if (createdMessage) {
               const { token: accessToken } =
                 await oAuth2Client.getAccessToken();
@@ -193,7 +210,7 @@ async function searchMail(req, res) {
           }
         })
       ).then(() => {
-console.log("successfully uploaded mail data : ",sendMessages)
+        console.log("successfully uploaded mail data : ", sendMessages);
         // return res.json({ success: true, sendMessages });
       });
     } else {
@@ -207,7 +224,7 @@ console.log("successfully uploaded mail data : ",sendMessages)
   }
 }
 
-setInterval(searchMail, 600000);
+setInterval(searchMail, 60000);
 
 // async function searchMail(req, res) {
 //   try {

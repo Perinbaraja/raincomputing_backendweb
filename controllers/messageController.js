@@ -16,6 +16,8 @@ const SENDMESSAGE = async (req, res) => {
       isAttachment,
       attachments,
       isForward,
+      maincaseId,
+      threadId
     } = req.body;
     const messageQuery = {
       groupId,
@@ -25,6 +27,8 @@ const SENDMESSAGE = async (req, res) => {
       isAttachment,
       attachments,
       isForward,
+      maincaseId,
+      threadId
     };
     if (caseId) {
       messageQuery.caseId = caseId;
@@ -125,9 +129,9 @@ const DELETEMSG = async (req, res) => {
     // time3 = time1 - time2;
     if (deleteIt) {
       // if (time3 < 60000) {
-        const deletedmsg = await Message.findByIdAndUpdate(id, {
+        const deletedmsg = await Message.findByIdAndUpdate({_id: id}, {
           aflag: false,
-        });
+        },{new: true});
         if (deletedmsg)
           return res.json({ success: true, DeletedMessage:deletedmsg
             //  time1, time2, time3 

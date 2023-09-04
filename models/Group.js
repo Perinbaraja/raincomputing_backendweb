@@ -57,6 +57,9 @@ const groupSchema = mongoose.Schema(
       type: String,
       default: "#0000FF",
     },
+    threadId:{
+      type: String
+    }
   },
   { timestamps: true }
 );
