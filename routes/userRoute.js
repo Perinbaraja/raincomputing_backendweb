@@ -290,18 +290,66 @@ router.post("/attorneydetails", async (req, res) => {
   });
 });
 
+// router.post("/allUser", async (req, res) => {
+//   const { userID, searchText = "", limit = 10, page = 1 } = req.body;
+//   const skip = (page - 1) * limit;
+//   userModel.find(
+//     {
+//       $or: [
+//         { firstname: { $regex: "^" + searchText, $options: "i" } },
+//         { lastname: { $regex: "^" + searchText, $options: "i" } },
+//         { email: { $regex: "^" + searchText, $options: "i" } },
+//       ],
+//       _id: { $ne: userID },
+//     },
+//     null,
+//     {
+//       sort: { firstname: 1 },
+//       limit: limit,
+//       skip: skip,
+//     },
+//     (err, list) => {
+//       if (err) {
+//         console.log("allUseruserid", err);
+
+//         res.json({
+//           msg: err,
+//         });
+//       } else {
+//         res.json({
+//           success: true,
+//           users: list,
+//         });
+//       }
+//     }
+//   );
+// });
 router.post("/allUser", async (req, res) => {
-  const { userID, searchText = "", limit = 10, page = 1 } = req.body;
-  const skip = (page - 1) * limit;
-  userModel.find(
-    {
+  const { userID, searchText = "", limit = 10, page = 1, email } = req.body;
+
+  let query = {
+    _id: { $ne: userID },
+  };
+  if (searchText.trim() !== "") {
+    query = {
+      ...query,
       $or: [
         { firstname: { $regex: "^" + searchText, $options: "i" } },
         { lastname: { $regex: "^" + searchText, $options: "i" } },
         { email: { $regex: "^" + searchText, $options: "i" } },
       ],
-      _id: { $ne: userID },
-    },
+    };
+  } else {
+    const emailMatch = email.match(/@(\S+)/);
+    const emails = emailMatch ? emailMatch[1] : "";
+    query = {
+      ...query,
+      email: { $regex: emails, $options: "i" },
+    };
+  }
+  const skip = (page - 1) * limit;
+  userModel.find(
+    query,
     null,
     {
       sort: { firstname: 1 },
@@ -310,8 +358,7 @@ router.post("/allUser", async (req, res) => {
     },
     (err, list) => {
       if (err) {
-        console.log("allUseruserid", err);
-
+        console.log("allUser userid", err);
         res.json({
           msg: err,
         });
@@ -464,11 +511,14 @@ router.put("/changepassword", async (req, res) => {
   const user = await userModel.findOne({ _id: userID });
   if (user) {
     const newPassword = await hashGenerator(password);
-    const userData = await userModel.findByIdAndUpdate({ _id: userID }, {
-      $set: {
-        password: newPassword
+    const userData = await userModel.findByIdAndUpdate(
+      { _id: userID },
+      {
+        $set: {
+          password: newPassword,
+        },
       }
-    })
+    );
     res.status(200).send({
       success: true,
       userID: user._id,
@@ -478,16 +528,15 @@ router.put("/changepassword", async (req, res) => {
       attorneyStatus: user.attorneyStatus,
       profilePic: user.profilePic,
       appointmentStatus: user.appointmentStatus,
-      msg: "password changed successfully"
+      msg: "password changed successfully",
     });
   } else {
     res.status(200).send({ success: false, msg: "user does not " });
   }
-})
+});
 
 router.put("/profilePicUpdate", async (req, res) => {
   const { email, profilePic } = req.body;
-  // console.log("propic", req.body);
   const queryData = {
     profilePic: profilePic,
   };
@@ -524,16 +573,18 @@ router.put("/profilePicUpdate", async (req, res) => {
       });
     }
   });
-})
+});
 router.post("/profilePicRemove", async (req, res) => {
   const { email } = req.body;
 
   try {
-    const updatedUser = await userModel.findOneAndUpdate(
-      { email: email },
-      { $unset: { profilePic: 1 } },
-      { new: true }
-    ).exec();
+    const updatedUser = await userModel
+      .findOneAndUpdate(
+        { email: email },
+        { $unset: { profilePic: 1 } },
+        { new: true }
+      )
+      .exec();
 
     if (!updatedUser) {
       return res.json({
@@ -557,7 +608,7 @@ router.post("/profilePicRemove", async (req, res) => {
     });
   }
 });
-router.post('/notifySound', async (req, res) => {
+router.post("/notifySound", async (req, res) => {
   const { _id, isNotifySound } = req.body;
 
   try {
@@ -579,14 +630,16 @@ router.post('/notifySound', async (req, res) => {
       appointmentStatus: isUser.appointmentStatus,
       profilePic: isUser.profilePic,
       isProfilePic: isUser.isProfilePic,
-      isNotifySound: isUser.isNotifySound
+      isNotifySound: isUser.isNotifySound,
     });
   } catch (error) {
-    console.error('Error updating document:', error);
-    res.status(500).json({ success: false, error: 'Failed to update document' });
+    console.error("Error updating document:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to update document" });
   }
 });
-router.post('/notification-sound', async (req, res) => {
+router.post("/notification-sound", async (req, res) => {
   try {
     const { _id, notificationSound } = req.body;
 
@@ -616,17 +669,20 @@ router.post('/notification-sound', async (req, res) => {
       profilePic: isUser.profilePic,
       isProfilePic: isUser.isProfilePic,
       isNotifySound: isUser.isNotifySound,
-      notificationSound: isUser.notificationSound
+      notificationSound: isUser.notificationSound,
     });
   } catch (error) {
-    console.error('Error updating notification sound:', error);
-    res.status(500).json({ error: 'An error occurred while updating the notification sound' });
+    console.error("Error updating notification sound:", error);
+    res
+      .status(500)
+      .json({
+        error: "An error occurred while updating the notification sound",
+      });
   }
 });
 
-
 // Get the notification sound for a user
-router.get('/getnotification-sound', async (req, res) => {
+router.get("/getnotification-sound", async (req, res) => {
   try {
     const { _id } = req.params;
 
@@ -635,13 +691,17 @@ router.get('/getnotification-sound', async (req, res) => {
 
     if (!user) {
       // User not found, return a default sound or appropriate response
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: "User not found" });
     } else {
       // Return the user's notification sound
       res.status(200).json({ notificationSound: user.notificationSound });
     }
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while retrieving the notification sound' });
+    res
+      .status(500)
+      .json({
+        error: "An error occurred while retrieving the notification sound",
+      });
   }
 });
 

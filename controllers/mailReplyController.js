@@ -7,7 +7,12 @@ const Message = require("../models/Message");
 const GridFSUploader = require("../helpers/GridFSUploader");
 const { default: mongoose } = require("mongoose");
 
-const mimeTypes = ["image/jpeg", "image/png", "application/pdf"];
+const mimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+  "application/docx",
+];
 
 const oAuth2Client = new google.auth.OAuth2(
   config.MAIL_CLIENT_ID,
@@ -66,8 +71,9 @@ async function searchMail(req, res) {
     const { token } = await oAuth2Client.getAccessToken();
     const config = generateConfig(url, token);
     const response = await axios(config);
-    // console.log("response gk",response)
+
     let sendMessages = [];
+
     if (response?.data?.messages?.length > 0) {
       Promise.all(
         response?.data?.messages?.map(async (mailMes) => {
@@ -83,17 +89,10 @@ async function searchMail(req, res) {
           const subject = payload?.headers.find(
             (h) => h?.name === "Subject"
           )?.value;
-
           const mail = messsageData?.snippet;
 
-          // Extract emailId using a regular expression
-          const emailIdMatch = mail.match(/Thread Id:\s*([\d]+)/);
-
+          const emailIdMatch = mail.match(/\[Thread Id:\s*([^\]]+)\]/);
           const mailId = emailIdMatch?.[1] ?? "EmailId not found in snippet";
-
-          // The rest of your code
-          // const objectIdMailId = mongoose.Types.ObjectId(mailId);
-
           const senderEmail = payload?.headers
             .find((h) => h?.name === "From")
             ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
@@ -103,6 +102,7 @@ async function searchMail(req, res) {
             select: "email",
           });
           const groupId = group?._id;
+
           const handleDocUpload = async ({
             fileName,
             mailId,
@@ -131,13 +131,7 @@ async function searchMail(req, res) {
               if (part.parts) {
                 parts = parts.concat(part.parts);
               }
-              // console.log("part gk",part?.body?.data)
-              // if (part.mimeType === "text/plain" && validMessageData === "") {
-              //   validMessageData = Buffer.from(
-              //     part?.body?.data,
-              //     "base64"
-              //   ).toString();
-              // }
+
               if (part.mimeType === "text/html" && validMessageData === "") {
                 validMessageData =
                   `<strong>Subject: ${subject}</strong><br><br>` +
@@ -153,15 +147,69 @@ async function searchMail(req, res) {
                 });
               }
             }
+            if (group?.threadIdCondition === "EveryOne") {
+              const sender = group?.groupMembers?.find(
+                (g) => g?.id?.email === senderEmail
+              )?.id?._id;
+              const receivers = group?.groupMembers
+                ?.filter((gm) => gm?.id?.email !== senderEmail)
+                ?.map((g) => g?.id?._id);
 
-            const sender = group?.groupMembers?.find(
-              (g) => g?.id?.email === senderEmail
-            )?.id?._id;
+              const messageQuery = {
+                groupId,
+                sender,
+                receivers,
+                messageData: validMessageData,
+              };
 
-            const receivers = group?.groupMembers
-              ?.filter((gm) => gm?.id?.email !== senderEmail)
-              ?.map((g) => g?.id?._id);
+              if (group.caseId) {
+                messageQuery.caseId = group.caseId;
+              }
 
+              if (validAttachments?.length > 0) {
+                messageQuery.isAttachment = true;
+                messageQuery.attachments = validAttachments;
+              }
+
+              const createdMessage = await Message.create(messageQuery);
+              if (createdMessage) {
+                const { token: accessToken } =
+                  await oAuth2Client.getAccessToken();
+                await axios({
+                  method: "post",
+                  url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
+                  headers: {
+                    Authorization: `Bearer ${accessToken} `,
+                  },
+                  data: {
+                    addLabelIds: ["Label_2117604939096943395"],
+                    removeLabelIds: ["UNREAD"],
+                  },
+                });
+
+                sendMessages.push(createdMessage);
+              } else {
+                console.log({
+                  msg: "Failed to forward mail",
+                  groupId,
+                  data: response.data,
+                });
+              }
+            } else {
+              console.log({
+                msg: "No group found ",
+                groupId,
+              });
+            }
+          }
+
+          const sender = group?.groupMembers?.find(
+            (g) => g?.id?.email === senderEmail
+          )?.id?._id;
+          const receivers = group?.groupMembers
+            ?.filter((gm) => gm?.id?.email !== senderEmail)
+            ?.map((g) => g?.id?._id);
+          if (sender && group?.threadIdCondition === "GroupMembers") {
             const messageQuery = {
               groupId,
               sender,

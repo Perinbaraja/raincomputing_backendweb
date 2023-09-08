@@ -11,31 +11,33 @@ const caseSchema = mongoose.Schema(
       required: true,
     },
     clientName: {
-      type: String
+      type: String,
     },
     // serialNumber: {
     //   type: String,
     //   required: true,
     // },
-    events:[{
-      docEvent:{
-       type: String,
-      },
-      eventText: [
-        {
-          text: { type: String },
-          docDate: { type: Date },
+    events: [
+      {
+        docEvent: {
+          type: String,
         },
-      ],
-      receivedDate:{
-        type: Date
+        eventText: [
+          {
+            text: { type: String },
+            docDate: { type: Date },
+          },
+        ],
+        receivedDate: {
+          type: Date,
+        },
+        createdAt: { type: Date, default: new Date() },
+        aflag: {
+          type: Boolean,
+          default: true,
+        },
       },
-       createdAt: { type: Date, default: new Date() },
-        aflag:{
-          type:Boolean,
-          default:true
-        }
-    }],
+    ],
     caseMembers: [
       {
         _id: false,
@@ -82,14 +84,17 @@ const caseSchema = mongoose.Schema(
       default: false,
     },
     isSubcase: {
-      type: Boolean
+      type: Boolean,
     },
     maincaseId: {
       type: String,
     },
     threadId: {
-      type: String
-    }
+      type: String,
+    },
+    threadIdCondition: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
