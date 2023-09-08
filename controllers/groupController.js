@@ -3,7 +3,7 @@ const Group = require("../models/Group");
 
 const CREATE_GROUP = async (req, res) => {
   try {
-    const { caseId, groupName, members, admin, color,threadId } = req.body;
+    const { caseId, groupName, members, admin, color, threadId } = req.body;
     const isGroupExisting = await Group.findOne({
       caseId,
       groupName,
@@ -19,7 +19,7 @@ const CREATE_GROUP = async (req, res) => {
       isGroup: true,
       admins: [admin],
       color: color,
-      threadId:threadId
+      threadId: threadId,
     };
     const createdGroup = await Group.create(groupQuery);
     if (createdGroup) return res.json({ success: true, group: createdGroup });
@@ -36,20 +36,20 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
       isGroup: false,
       admins: sortedmembers,
     }).populate("groupMembers.id", "firstname lastname email profilePic");
-    
+
     if (isChat) {
       isChat.aflag = true; // Add flag with value true
       await isChat.save(); // Save the updated document
       return res.json({ success: true, group: isChat });
     }
-    
+
     const struturedMembers = sortedmembers.map((m) => ({ id: m }));
     const chatQuery = {
       groupMembers: struturedMembers,
       admins: sortedmembers,
       aflag: true, // Add flag with value true for the new chat
     };
-        
+
     const createdChat = await Group.create(chatQuery);
     if (createdChat) {
       const newChat = await Group.findById(createdChat._id).populate(
@@ -119,38 +119,38 @@ const GETBYCASEID_USERID = async (req, res) => {
 
 const UPDATE_GROUP = async (req, res) => {
   try {
-    const { groupId, groupName, members, admin, color, deleteIt } = req.body;
+    const {
+      groupId,
+      groupName,
+      members,
+      admin,
+      color,
+      deleteIt,
+      threadIdCondition,
+    } = req.body;
     if (deleteIt) {
       const deletedGroup = await Group.findByIdAndUpdate(groupId, {
         aflag: false,
       });
       if (deletedGroup)
         return res.json({ success: true, groupName: deletedGroup?.groupName });
-    } 
-    else if(!deleteIt){
-      const deletedGroup = await Group.findByIdAndUpdate(groupId, {
-        aflag: true,
-      });
-      if (deletedGroup)
-        return res.json({ success: true, groupName: deletedGroup?.groupName });
     }
-    else {
-      const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
-      const updateQuery = {
-        groupName,
-        groupMembers: struturedMembers,
-        color,
-      };
-      const updatedGroup = await Group.findByIdAndUpdate(groupId, updateQuery);
-      if (updatedGroup) return res.json({ success: true, groupName });
+    const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+    const updateQuery = {
+      groupName,
+      groupMembers: struturedMembers,
+      color,
+      threadIdCondition,
+    };
+    const updatedGroup = await Group.findByIdAndUpdate(groupId, updateQuery);
+    if (updatedGroup) {
+      return res.json({ success: true, groupName, updatedGroup });
     }
   } catch (err) {
     console.log("group update error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
-
 
 module.exports.groupController = {
   CREATE_GROUP,
