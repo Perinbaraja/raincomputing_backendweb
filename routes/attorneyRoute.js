@@ -20,6 +20,9 @@ router.post("/register", async (req, res) => {
       state,
       city,
       postalCode,
+      expertise,
+      jurisdiction,
+      fee,
       status,
       scheduleDates,
     } = req.body;
@@ -39,6 +42,9 @@ router.post("/register", async (req, res) => {
         state,
         city,
         postalCode,
+        expertise,
+        jurisdiction,
+        fee,
         status,
         scheduleDates,
         aflag: true,
@@ -94,6 +100,9 @@ router.put("/attorneyUpdate", async (req, res) => {
       state,
       city,
       postalCode,
+      expertise,
+      jurisdiction,
+      fee,
       status,
     } = req.body;
     const data = {
@@ -105,6 +114,9 @@ router.put("/attorneyUpdate", async (req, res) => {
       state: state,
       city: city,
       postalCode: postalCode,
+      expertise: expertise,
+      jurisdiction: jurisdiction,
+      fee: fee,
       status: status,
     };
     const updatedAttorney = await RegAttorneyModel.findByIdAndUpdate(
