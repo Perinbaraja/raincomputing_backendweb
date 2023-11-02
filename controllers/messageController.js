@@ -65,7 +65,7 @@ const REPLYMESSAGE = async (req, res) => {
       replyMsg: msg,
     };
     const replyMessage = await Message.findByIdAndUpdate(id, {
-      $push: { replies: replyQuery }, 
+      $push: { replies: replyQuery },
       isReply: true, // add this line to update the flag
     },{new:true});
     if (replyMessage) return res.json({ success: true, replyMessage });
@@ -77,9 +77,10 @@ const REPLYMESSAGE = async (req, res) => {
 
 const GETMESSAGES = async (req, res) => {
   try {
-    const { groupId, userId } = req.body;
+    const { groupId, userId,caseId } = req.body;
+    if( groupId) {
     const groupMessages = await Message.find({
-      groupId,
+      groupId,    
       aflag: true,
       cleardBy: { $ne: [userId] },
     });
@@ -88,6 +89,18 @@ const GETMESSAGES = async (req, res) => {
         success: true,
         groupMessages,
       });
+    }else{
+      const groupMessages = await Message.find({
+        caseId,
+        aflag: true,
+        cleardBy: { $ne: [userId] },
+      });
+      if (groupMessages)
+        return res.json({
+          success: true,
+          groupMessages,
+        });
+    }
   } catch (err) {
     console.log(err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
@@ -129,13 +142,13 @@ const DELETEMSG = async (req, res) => {
     // time3 = time1 - time2;
     if (deleteIt) {
       // if (time3 < 60000) {
-        const deletedmsg = await Message.findByIdAndUpdate({_id: id}, {
-          aflag: false,
-        },{new: true});
-        if (deletedmsg)
-          return res.json({ success: true, DeletedMessage:deletedmsg
-            //  time1, time2, time3 
-            });
+      const deletedmsg = await Message.findByIdAndUpdate({ _id: id }, {
+        aflag: false,
+      },{new: true});
+      if (deletedmsg)
+        return res.json({ success: true, DeletedMessage: deletedmsg
+          //  time1, time2, time3 
+        });
       // } 
       // else {
       //   return res.json({
@@ -172,54 +185,106 @@ const UPDATE_MESSAGE = async (req, res) => {
 
 const GETFILES = async (req, res) => {
   try {
-    const { caseId, searchText = "" } = req.body;
-    const filesQuery = {
-      caseId,
-      aflag: true,
-      isAttachment: true,
-      "attachments.aflag": true,
-      "attachments.name": { $regex: "^" + searchText, $options: "i" },
-    };
-    const files = await Message.find(filesQuery).populate({
-      path: "sender",
-      select: "firstname lastname _id",
-    });
-    if (files?.length > 0) {
-      let struturedFiles = [];
-      files.map((f) => {
-        const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
-        const senderId = f?.sender?._id;
-        const time = f?.createdAt;
-        const msgId = f?._id;
-        f?.attachments?.map((a) => {
-          const typeIndex = a?.name.indexOf(".");
-          const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
-          const size = a?.size;
-          const id = a?.id;
-          const name = a?.name;
-          const note = a?.note;
-          struturedFiles.push({
-            msgId,
-            id,
-            senderName,
-            senderId,
-            type,
-            name,
-            size,
-            time,
-            note,
+    const { groupId, caseId, searchText = "" } = req.body;
+
+    if (caseId) {
+      const filesQuery = {
+        caseId,
+        aflag: true,
+        isAttachment: true,
+        "attachments.aflag": true,
+        "attachments.name": { $regex: "^" + searchText, $options: "i" },
+      };
+      const files = await Message.find(filesQuery).populate({
+        path: "sender",
+        select: "firstname lastname _id",
+      });
+      if (files?.length > 0) {
+        let struturedFiles = [];
+        files.map((f) => {
+          const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
+          const senderId = f?.sender?._id;
+          const time = f?.createdAt;
+          const msgId = f?._id;
+          f?.attachments?.map((a) => {
+            const typeIndex = a?.name.indexOf(".");
+            const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
+            const size = a?.size;
+            const id = a?.id;
+            const name = a?.name;
+            const note = a?.note;
+            struturedFiles.push({
+              msgId,
+              id,
+              senderName,
+              senderId,
+              type,
+              name,
+              size,
+              time,
+              note,
+            });
           });
         });
-      });
-      return res.json({
-        success: true,
-        files: struturedFiles,
-      });
+        return res.json({
+          success: true,
+          files: struturedFiles,
+        });
+      } else {
+        return res.json({
+          msg: "No Files Found",
+        });
+      }
     } else {
-      return res.json({
-        msg: "No Files Found",
+      const filesQuery = {
+        groupId,
+        aflag: true,
+        isAttachment: true,
+        "attachments.aflag": true,
+        "attachments.name": { $regex: "^" + searchText, $options: "i" },
+      };
+      const files = await Message.find(filesQuery).populate({
+        path: "sender",
+        select: "firstname lastname _id",
       });
+      if (files?.length > 0) {
+        let struturedFiles = [];
+        files.map((f) => {
+          const senderName = f?.sender?.firstname + " " + f?.sender?.lastname;
+          const senderId = f?.sender?._id;
+          const time = f?.createdAt;
+          const msgId = f?._id;
+          f?.attachments?.map((a) => {
+            const typeIndex = a?.name.indexOf(".");
+            const type = a?.name.slice(typeIndex !== 0 ? typeIndex + 1 : 0);
+            const size = a?.size;
+            const id = a?.id;
+            const name = a?.name;
+            const note = a?.note;
+            struturedFiles.push({
+              msgId,
+              id,
+              senderName,
+              senderId,
+              type,
+              name,
+              size,
+              time,
+              note,
+            });
+          });
+        });
+        return res.json({
+          success: true,
+          files: struturedFiles,
+        });
+      } else {
+        return res.json({
+          msg: "No Files Found",
+        });
+      }
     }
+
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }

@@ -4,6 +4,7 @@ const Case = require("../models/Case");
 const Group = require("../models/Group");
 const userModel = require("../models/userModel");
 const axios = require("axios");
+const Message = require("../models/Message");
 
 const CREATE = async (req, res) => {
   try {
@@ -64,28 +65,32 @@ const GETBYUSERID = async (req, res) => {
   try {
     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
     const skip = (page - 1) * limit;
-    const userCases = await Case.find(
-      {
-        $or: [
-          { caseName: { $regex: "^" + searchText, $options: "i" } },
-          { caseId: { $regex: "^" + searchText, $options: "i" } },
-        ],
-        caseMembers: {
-          $elemMatch: {
-            id: userId,
-            isActive: true,
-          },
+    const messages = await Message.find({
+      messageData: { $regex: searchText, $options: "i" }, // Filter messages by searchText
+      aflag: true,
+    });
+    const matchingCaseIds = messages.map((message) => message.caseId); // Extract caseIds from matching messages
+    const userCases = await Case.find({
+      $or: [
+        { caseName: { $regex: "^" + searchText, $options: "i" } },
+        { caseId: { $regex: "^" + searchText, $options: "i" } },
+        { _id: { $in: matchingCaseIds } }, // Filter cases by matching caseIds
+      ],
+      caseMembers: {
+        $elemMatch: {
+          id: userId,
+          isActive: true,
         },
-        aflag: true,
-        isSubcase: { $ne: true },
       },
-      null,
-      { limit: limit, skip: skip }
-    ).populate([
-      { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-      { path: "caseMembers.addedBy", select: "firstname lastname" },
-    ]);
-
+      aflag: true,
+      isSubcase: { $ne: true },
+    })
+      .limit(limit)
+      .skip(skip)
+      .populate([
+        { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+        { path: "caseMembers.addedBy", select: "firstname lastname" },
+      ]);
     if (userCases && userCases.length > 0)
       return res.json({ success: true, cases: userCases });
     else return res.json({ msg: "No cases Found" });
