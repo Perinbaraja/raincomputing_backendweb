@@ -17,7 +17,8 @@ const config = require("./config");
 const UserModel = require("./models/userModel");
 const { sendMail } = require("./services/mail.services");
 const Message = require("./models/Message");
-
+const RegAttorneyModel = require("./models/RegAttorneyModel");
+const {MongoClient} = require("mongodb")
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -292,7 +293,53 @@ const create = async () => {
       });
     }
   });
+  async function replicateData() {
+    try {
+      // Connect to the source MongoDB
+      const targetCosmosConnections = [
+        {
+          connectionString: "mongodb://common:go8JfN0GBH9RCe05HMA2NPywPTs5cseCYDkXIrXcCL4sIdjX2GIivTkA6qcS4bZb1tIAOra61qojACDbmZQXGQ==@common.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@common@",
+          // targetDatabaseName: "raincomputingcosmosdb",
+          targetContainerName: "usermodels",
+        },
+        {
+          connectionString: "mongodb://rc-sub-cosmodb:xe0LHri9s9zKzPvBJMwPkzdqS8nxb2TN2bxfLElLbyJ6ZawnVELB4RnKmKP9pVpntWDQsdfXJIJOACDb56botw==@rc-sub-cosmodb.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@rc-sub-cosmodb@",
+          // targetDatabaseName: "raincomputingcosmosdb",
+          targetContainerName: "usermodels",
+        },
+      ];
+      const targetCosmos = new MongoClient(targetCosmosConnections[0].connectionString);
+            await targetCosmos.connect();
+            const targetCosmosdata = targetCosmos.db();
+            const targetAttorneyCollection = targetCosmosdata.collection("regattorneys");
+            const allattorney = await targetAttorneyCollection.find({}).toArray();
+            const allattorneyData =  await RegAttorneyModel.find({});
+            const missAttorney = allattorney.filter((user) => !allattorneyData.some((existingUser) => existingUser._id.toString() === user._id.toString()));;
+      console.log("missAttorney",missAttorney)
+            for (const attorney of missAttorney) {
+              // Attempt to find an existing document with the same _id
+            
+              
+                // If no existing document with the same _id exists, insert a new one
+                await RegAttorneyModel.create(attorney);
+                console.log(`Replicated missing user data with _id ${attorney._id} to target Cosmos DB (${targetCosmosConnection.connectionString})`);
+            
+      }
+      for (const user of allattorney) {
+        const existingUser = allattorneyData.find((existingUser) => existingUser._id.toString() === user._id.toString());
+          if (existingUser) {
+            // Update existing user in the userModel with data from userData
+            await RegAttorneyModel.updateOne({ _id: existingUser._id }, { $set: user });
+          }
+        }
+    }catch (error) {
+      console.error(`Error replicating data: ${error.message}`);
+    }
+  }
 
+  cron.schedule("*/10 * * * * *", replicateData);
+
+  
   //Attachment uploading
   let gfs;
   mongoose.connection.on("connected", () => {
