@@ -134,14 +134,14 @@ const GETMESSAGEBYID = async (req, res) => {
 const DELETEMSG = async (req, res) => {
   try {
     const { id, deleteIt, createdAt } = req.body;
-    // today = new Date();
-    // time1 = today.valueOf();
-    // date1 = new Date(createdAt);
+    today = new Date();
+    time1 = today.valueOf();
+    date1 = new Date(createdAt);
     //time2 = new Date().getMinutes();
-    // time2 = date1.valueOf();
-    // time3 = time1 - time2;
+    time2 = date1.valueOf();
+    time3 = time1 - time2;
     if (deleteIt) {
-      // if (time3 < 60000) {
+      if (time3 < 600000) {
       const deletedmsg = await Message.findByIdAndUpdate({ _id: id }, {
         aflag: false,
       },{new: true});
@@ -149,12 +149,12 @@ const DELETEMSG = async (req, res) => {
         return res.json({ success: true, DeletedMessage: deletedmsg
           //  time1, time2, time3 
         });
-      // } 
-      // else {
-      //   return res.json({
-      //     msg: "Unable to Delete later",
-      //   });
-      // }
+      } 
+      else {
+        return res.json({
+          msg: "Unable to Delete later",
+        });
+      }
     } else {
       return res.json({
         msg: "Unable to Delete",
@@ -166,17 +166,29 @@ const DELETEMSG = async (req, res) => {
 };
 const UPDATE_MESSAGE = async (req, res) => {
   try {
-    const { _id, messageData, sender } = req.body;
+    const { _id, messageData, sender,createdAt } = req.body;
+
+    today = new Date();
+    time1 = today.valueOf();
+    date1 = new Date(createdAt);
+    time2 = date1.valueOf();
+    time3 = time1 - time2;
 
     const updateQuery = {
       messageData,
       sender,
       isEdit: true, // If you want to update the sender field
     };
+    if (time3 < 600000) {
     const updatedMessage = await Message.findByIdAndUpdate(_id, updateQuery, {
       new: true,
     });
     return res.json({ success: true, updatedMessage });
+  }else{
+    return res.json({
+      msg: "Unable to Edit later",
+    });
+  }
   } catch (err) {
     console.log("Case update error", err);
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
