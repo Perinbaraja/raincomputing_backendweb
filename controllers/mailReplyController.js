@@ -134,7 +134,7 @@ async function searchMail(req, res) {
 
               if (part.mimeType === "text/html" && validMessageData === "") {
                 validMessageData =
-                  `<strong>Subject: ${subject}</strong><br><br>` +
+                  `<strong>Subject: ${subject}</strong>` +
                   Buffer.from(part?.body?.data, "base64").toString();
               }
 
