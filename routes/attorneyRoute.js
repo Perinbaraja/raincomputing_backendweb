@@ -25,6 +25,7 @@ router.post("/register", async (req, res) => {
       fee,
       status,
       scheduleDates,
+      subdomain
     } = req.body;
     //Finding user from DB collection using unique userID
     const user = await UserModel.findOne({ _id: userID, aflag: true });
@@ -45,6 +46,7 @@ router.post("/register", async (req, res) => {
         expertise,
         jurisdiction,
         fee,
+        subdomain,
         status,
         scheduleDates,
         aflag: true,
@@ -103,6 +105,7 @@ router.put("/attorneyUpdate", async (req, res) => {
       expertise,
       jurisdiction,
       fee,
+      subdomain,
       status,
     } = req.body;
     const data = {
@@ -117,6 +120,7 @@ router.put("/attorneyUpdate", async (req, res) => {
       expertise: expertise,
       jurisdiction: jurisdiction,
       fee: fee,
+      subdomain:subdomain,
       status: status,
     };
     const updatedAttorney = await RegAttorneyModel.findByIdAndUpdate(

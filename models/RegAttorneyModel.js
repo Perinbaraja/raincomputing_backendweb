@@ -42,6 +42,9 @@ const RegAttorneySchema = mongoose.Schema({
   jurisdiction:{
     type:String
   },
+  subdomain:{
+    type:String
+  },
   aflag: {
     type: Boolean,
   },
