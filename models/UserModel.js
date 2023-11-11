@@ -27,7 +27,19 @@ const userSchema = mongoose.Schema({
   profilePic: {
     type: String,
   },
-
+  domains: [
+    {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: mongoose.Types.ObjectId,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      // Add other properties as needed
+    },
+  ],
   isProfilePic: { type: Boolean, default: true },
 
   aflag: {
