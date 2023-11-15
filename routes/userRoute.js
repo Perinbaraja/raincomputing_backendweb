@@ -704,7 +704,121 @@ router.get("/getnotification-sound", async (req, res) => {
       });
   }
 });
+router.post("/updatedomains", async (req, res) => {
+  const { email, domains } = req.body;
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({
+        msg: "User not Found",
+      });
+    }
+    // Assuming each domain object has an _id property
+    const updatedDomains = domains.map(({ _id, name }) => ({
+      _id,
+      name,
+    }));
+    // Update each domain in the user's domains array based on _id
+    updatedDomains.forEach(updatedDomain => {
+      const index = user.domains.findIndex(domain => domain._id.toString() === updatedDomain._id);
+      if (index !== -1) {
+        user.domains[index] = updatedDomain;
+      }
+    });
+    // Save the updated user
+    const updatedUser = await user.save();
+    // Omit sensitive fields from the response
+    const responseUser = updatedUser.toObject();
+    delete responseUser.password;
+    delete responseUser.__v;
+    return res.json({
+      success: true,
+      userID: responseUser._id,
+      firstname: responseUser.firstname,
+      lastname: responseUser.lastname,
+      email: responseUser.email,
+      attorneyStatus: responseUser.attorneyStatus,
+      appointmentStatus: responseUser.appointmentStatus,
+      profilePic: responseUser.profilePic,
+      domains: responseUser.domains,
+    });
+  } catch (err) {
+    return res.json({
+      msg: "Error Occurred",
+      error: err.message,
+    });
+  }
+});
+router.post("/createdomains", async (req, res) => {
+  try {
+    const { email, domains } = req.body;
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({
+        msg: "User not Found",
+      });
+    }
+    // Transform domain names into objects with _id and name properties
+    const transformedDomains = domains.map(name => ({ name }));
+    // Add transformed domains to the user
+    user.domains.push(...transformedDomains);
+    // Save the user with the updated domains
+    await user.save();
+    return res.json({
+      success: true,
+      userID: user._id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      attorneyStatus: user.attorneyStatus,
+      appointmentStatus: user.appointmentStatus,
+      profilePic: user.profilePic,
+      domains: user.domains,
+    });
+  } catch (err) {
+    return res.json({
+      msg: "Error Occurred",
+      error: err.message,
+    });
+  }
+});
+router.post("/deletedomains", async (req, res) => {
+  const { email, domains } = req.body;
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({
+        msg: "User not Found",
+      });
+    }
+    // Remove the domains with matching _id
+    user.domains = user.domains.filter(userDomain => {
+      return !domains.some(deleteDomain => deleteDomain._id === userDomain._id.toString());
+    });
+    // Save the updated user
+    const updatedUser = await user.save();
+    // Omit sensitive fields from the response
+    const responseUser = updatedUser.toObject();
+    delete responseUser.password;
+    delete responseUser.__v;
+    return res.json({
+      success: true,
+      userID: responseUser._id,
+      firstname: responseUser.firstname,
+      lastname: responseUser.lastname,
+      email: responseUser.email,
+      attorneyStatus: responseUser.attorneyStatus,
+      appointmentStatus: responseUser.appointmentStatus,
+      profilePic: responseUser.profilePic,
+      domains: responseUser.domains,
+    });
+  } catch (err) {
+    return res.json({
+      msg: "Error Occurred",
+      error: err.message,
+    });
+  }
+});
 
 module.exports = router;
 
-module.exports = router;

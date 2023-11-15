@@ -13,6 +13,11 @@ const caseSchema = mongoose.Schema(
     clientName: {
       type: String,
     },
+    membersEmail: [
+      {
+        type: String
+      },
+    ],
     // serialNumber: {
     //   type: String,
     //   required: true,
