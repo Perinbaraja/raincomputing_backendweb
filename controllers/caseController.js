@@ -5,6 +5,62 @@ const Group = require("../models/Group");
 const userModel = require("../models/userModel");
 const axios = require("axios");
 const Message = require("../models/Message");
+const { sendMail } = require("../services/mail.services");
+
+// const CREATE = async (req, res) => {
+//   try {
+//     const {
+//       caseId,
+//       caseName,
+//       members,
+//       admin,
+//       serialNumber,
+//       docDate,
+//       docEvent,
+//       maincaseId,
+//       isSubcase,
+//       threadId,
+//       threadIdCondition,
+//     } = req.body;
+//     const isCaseId = await Case.findOne({ caseId });
+//     if (isCaseId) return res.json({ msg: "Case Id Already existing" });
+//     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+//     const caseQuery = {
+//       caseId,
+//       caseName,
+//       caseMembers: struturedMembers,
+//       notifyMembers: members,
+//       admins: [admin],
+//       serialNumber,
+//       maincaseId: maincaseId,
+//       isSubcase: isSubcase,
+//       threadId: threadId,
+//       threadIdCondition,
+//     };
+//     const createdCase = await Case.create(caseQuery);
+//     if (createdCase) {
+//       const groupQuery = {
+//         caseId: createdCase?._id,
+//         groupMembers: struturedMembers,
+//         isGroup: true,
+//         admins: [admin],
+//         threadId: createdCase?.threadId,
+//         threadIdCondition: createdCase?.threadIdCondition,
+//       };
+//       const createdGroup = await Group.create(groupQuery);
+//       if (createdGroup)
+//         return res.json({
+//           success: true,
+//           case: createdCase._id,
+//           group: createdGroup._id,
+//         });
+//     }
+//   } catch (err) {
+//     return res.json({
+//       msg: err || config.DEFAULT_RES_ERROR,
+//     });
+//   }
+// };
 
 const CREATE = async (req, res) => {
   try {
@@ -14,6 +70,7 @@ const CREATE = async (req, res) => {
       members,
       admin,
       serialNumber,
+      membersEmail,
       docDate,
       docEvent,
       maincaseId,
@@ -24,11 +81,13 @@ const CREATE = async (req, res) => {
     const isCaseId = await Case.findOne({ caseId });
     if (isCaseId) return res.json({ msg: "Case Id Already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
+    console.log("members", members);
     const caseQuery = {
       caseId,
       caseName,
       caseMembers: struturedMembers,
       notifyMembers: members,
+      membersEmail: membersEmail,
       admins: [admin],
       serialNumber,
       maincaseId: maincaseId,
@@ -41,18 +100,38 @@ const CREATE = async (req, res) => {
       const groupQuery = {
         caseId: createdCase?._id,
         groupMembers: struturedMembers,
+        membersEmail: membersEmail,
         isGroup: true,
         admins: [admin],
         threadId: createdCase?.threadId,
         threadIdCondition: createdCase?.threadIdCondition,
       };
       const createdGroup = await Group.create(groupQuery);
-      if (createdGroup)
+      const selectedMembers = membersEmail.map((m)=>m)
+      if (createdGroup) {
+        // Send email to members after creating the case
+        const mailOptions = {
+          to: selectedMembers,
+          subject: `New Case Created: ${createdCase.caseName}`,
+          html: `<div><h3>Hello, A new case has been created:</h3>
+            <p>Case Name: ${createdCase.caseName}</p>
+            <p>Case ID: ${createdCase.caseId}</p>
+            <p>Domain: https://raincomputing.net/</p>
+            <a href="http://raincomputing.net/chat-rc?g_id=${createdGroup?._id}&c_id=${createdCase?._id}">View Case</a></div>`,
+        };
+        try {
+          // Use your email sending function here
+          await sendMail(mailOptions);
+          console.log("Email sent successfully");
+        } catch (error) {
+          console.error("Error sending email:", error);
+        }
         return res.json({
           success: true,
           case: createdCase._id,
           group: createdGroup._id,
         });
+      }
     }
   } catch (err) {
     return res.json({
