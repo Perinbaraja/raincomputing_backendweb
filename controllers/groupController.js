@@ -62,29 +62,52 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
-
 const GET_ONE_ON_ONE_CHAT = async (req, res) => {
   try {
     const { userId } = req.body;
-    const chats = await Group.find(
-      {
-        isGroup: false,
-        aflag: true,
-        groupMembers: {
-          $elemMatch: {
-            id: userId,
-            isActive: true,
-          },
-        },
-      },
-      null,
-      { sort: { updatedAt: -1 } }
-    ).populate("groupMembers.id", "firstname lastname email profilePic");
-    if (chats) return res.json({ success: true, groups: chats });
+    const query = {
+      isGroup: false,
+      aflag: true,
+      'groupMembers.id': userId,
+      'groupMembers.isActive': true,
+    };
+    const projection = {
+      'groupMembers.id': 1,
+      updatedAt: 1,
+    };
+    const chats = await Group.find(query, projection)
+      .sort({ updatedAt: -1 })
+      .populate('groupMembers.id', 'firstname lastname email profilePic')
+      .lean(); // Use lean queries for better performance if you only need plain objects
+    if (chats) {
+      return res.json({ success: true, groups: chats });
+    }
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+// const GET_ONE_ON_ONE_CHAT = async (req, res) => {
+//   try {
+//     const { userId } = req.body;
+//     const chats = await Group.find(
+//       {
+//         isGroup: false,
+//         aflag: true,
+//         groupMembers: {
+//           $elemMatch: {
+//             id: userId,
+//             isActive: true,
+//           },
+//         },
+//       },
+//       null,
+//       { sort: { updatedAt: -1 } }
+//     ).populate("groupMembers.id", "firstname lastname email profilePic");
+//     if (chats) return res.json({ success: true, groups: chats });
+//   } catch (err) {
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// };
 
 const GETBYCASEID_USERID = async (req, res) => {
   try {
