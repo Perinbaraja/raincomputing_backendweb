@@ -161,24 +161,26 @@ router.post("/getByUserId", async (req, res) => {
 });
 
 router.post("/getAllAttorney", async (req, res) => {
-  const { attorneyID } = req.body;
-  RegAttorneyModel.find({ _id: { $ne: attorneyID }, status: "approved" })
-    .populate({
-      path: "regUser",
-      select: "firstname lastname email profilePic isProfilePic",
+  try {
+    const { attorneyID } = req.body;
+    const attorneys = await RegAttorneyModel.find({
+      _id: { $ne: attorneyID },
+      status: "approved",
     })
-    .exec((err, attorneys) => {
-      if (err) {
-        return res.json({
-          msg: err,
-        });
-      } else {
-        return res.json({
-          success: true,
-          attorneys,
-        });
-      }
+      .populate({
+        path: "regUser",
+        select: "firstname lastname email profilePic isProfilePic",
+      })
+      .lean(); // Convert mongoose documents to plain JavaScript objects
+    return res.json({
+      success: true,
+      attorneys,
     });
+  } catch (err) {
+    return res.json({
+      msg: err.message || "Error fetching attorneys",
+    });
+  }
 });
 
 router.post("/regAttorneyDetails", async (req, res) => {
