@@ -238,76 +238,9 @@ const GETBYUSERID = async (req, res) => {
 //   }
 // };
 
-// const UPDATE_CASE = async (req, res) => {
-//   try {
-//     const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt } = req.body;
-
-//     if (deleteIt) {
-//       const deletedCase = await Case.findByIdAndUpdate(id, {
-//         aflag: false,
-//       });
-
-//       if (deletedCase) {
-//         return res.json({
-//           success: true,
-//           caseId: deletedCase.caseId,
-//         });
-//       }
-//     } else {
-//       const structuredMembers = members.map((m) => ({ id: m, addedBy: admin }));
-//       const updateQuery = {
-//         caseName,
-//         caseId,
-//         docDate,
-//         docEvent,
-//         serialNumber,
-//         caseMembers: structuredMembers,
-//         notifyMembers: members,
-//       };
-
-//       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, { new: true })
-//         .populate([
-//           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-//           { path: "caseMembers.addedBy", select: "firstname lastname" },
-//         ]);
-
-//       if (updatedCase) {
-//         const everyoneGroup = await Group.findOne({
-//           caseId: id,
-//           isParent: true,
-//         });
-
-//         if (everyoneGroup) {
-//           const updateQueryForGroup = {
-//             groupMembers: structuredMembers,
-//           };
-
-//           await Group.findByIdAndUpdate(everyoneGroup._id, updateQueryForGroup);
-//         }
-
-//         return res.json({
-//           success: true,
-//           updatedCase,
-//         });
-//       }
-//     }
-//   } catch (err) {
-//     console.log("Case update error", err);
-//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
-//   }
-// };
 const UPDATE_CASE = async (req, res) => {
   try {
-    const {
-      id,
-      caseId,
-      caseName,
-      serialNumber,
-      members,
-      admin,
-      deleteIt,
-      threadIdCondition,
-    } = req.body;
+    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt,threadIdCondition } = req.body;
 
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
@@ -325,21 +258,19 @@ const UPDATE_CASE = async (req, res) => {
       const updateQuery = {
         caseName,
         caseId,
+        docDate,
+        docEvent,
         serialNumber,
         caseMembers: structuredMembers,
-        threadIdCondition,
+        notifyMembers: members,
+        threadIdCondition:threadIdCondition,
       };
 
-      const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, {
-        new: true,
-      })
-      .populate([
-        {
-          path: "caseMembers.id",
-          select: "firstname lastname profilePic email",
-        },
-        { path: "caseMembers.addedBy", select: "firstname lastname" },
-      ]);
+      const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, { new: true })
+        .populate([
+          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.addedBy", select: "firstname lastname" },
+        ]);
 
       if (updatedCase) {
         if (threadIdCondition) {
@@ -355,14 +286,23 @@ const UPDATE_CASE = async (req, res) => {
             { new: true }
           );
         }
+
+        const everyoneGroup = await Group.findOne({
+          caseId: id,
+          isParent: true,
+        });
+
+        if (everyoneGroup) {
+          const updateQueryForGroup = {
+            groupMembers: structuredMembers,
+          };
+
+          await Group.findByIdAndUpdate(everyoneGroup._id, updateQueryForGroup);
+        }
+
         return res.json({
           success: true,
           updatedCase,
-        });
-      } else {
-        return res.json({
-          success: false,
-          msg: "Case not found or update failed.",
         });
       }
     }
@@ -371,6 +311,7 @@ const UPDATE_CASE = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+
 
 const EVENT_CREATE = async (req, res) => {
   const { caseId, events } = req.body;
