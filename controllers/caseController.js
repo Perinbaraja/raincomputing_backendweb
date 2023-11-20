@@ -139,63 +139,96 @@ const CREATE = async (req, res) => {
     });
   }
 };
+// const GETBYUSERID = async (req, res) => {
+//   try {
+//     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
+//     if (searchText ) {
+//       const skip = (page - 1) * limit;
+//       const messageQuery = {
+//         messageData: { $regex: searchText, $options: "i" },
+//         aflag: true,
+//       };
+//       const messages = await Message.find(messageQuery).select('caseId').lean();
+//       const matchingCaseIds = messages.map((message) => message.caseId);
+//       const caseQuery = {
+//         $or: [
+//           { caseName: { $regex: "^" + searchText, $options: "i" } },
+//           { caseId: { $regex: "^" + searchText, $options: "i" } },
+//           { _id: { $in: matchingCaseIds } },
+//         ],
+//         "caseMembers.id": userId,
+//         "caseMembers.isActive": true,
+//         aflag: true,
+//         isSubcase: { $ne: true },
+//       };
+//       const userCases = await Case.find(caseQuery)
+//         .limit(limit)
+//         .skip(skip)
+//         .populate([
+//           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+//           { path: "caseMembers.addedBy", select: "firstname lastname" },
+//         ])
+//         .lean();
+//       if (userCases && userCases.length > 0) {
+//         return res.json({ success: true, cases: userCases });
+//       } else {
+//         return res.json({ msg: "No cases Found" });
+//       }
+//     } else {
+//       const skip = (page - 1) * limit;
+//       const caseQuery = {
+//         "caseMembers.id": userId,
+//         "caseMembers.isActive": true,
+//         aflag: true,
+//         isSubcase: { $ne: true },
+//       };
+//       const userCases = await Case.find(caseQuery)
+//         .limit(limit)
+//         .skip(skip)
+//         .populate([
+//           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+//           { path: "caseMembers.addedBy", select: "firstname lastname" },
+//         ])
+//         .lean();
+//       if (userCases && userCases.length > 0) {
+//         return res.json({ success: true, cases: userCases });
+//       } else {
+//         return res.json({ msg: "No cases Found" });
+//       }
+//     }
+//   } catch (err) {
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// };
 const GETBYUSERID = async (req, res) => {
   try {
     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
-    if (searchText ) {
-      const skip = (page - 1) * limit;
-      const messageQuery = {
-        messageData: { $regex: searchText, $options: "i" },
-        aflag: true,
-      };
-      const messages = await Message.find(messageQuery).select('caseId').lean();
-      const matchingCaseIds = messages.map((message) => message.caseId);
-      const caseQuery = {
+    const skip = (page - 1) * limit;
+    const userCases = await Case.find(
+      {
         $or: [
           { caseName: { $regex: "^" + searchText, $options: "i" } },
           { caseId: { $regex: "^" + searchText, $options: "i" } },
-          { _id: { $in: matchingCaseIds } },
         ],
-        "caseMembers.id": userId,
-        "caseMembers.isActive": true,
+        caseMembers: {
+          $elemMatch: {
+            id: userId,
+            isActive: true,
+          },
+        },
         aflag: true,
-        isSubcase: { $ne: true },
-      };
-      const userCases = await Case.find(caseQuery)
-        .limit(limit)
-        .skip(skip)
-        .populate([
-          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-          { path: "caseMembers.addedBy", select: "firstname lastname" },
-        ])
-        .lean();
-      if (userCases && userCases.length > 0) {
-        return res.json({ success: true, cases: userCases });
-      } else {
-        return res.json({ msg: "No cases Found" });
-      }
-    } else {
-      const skip = (page - 1) * limit;
-      const caseQuery = {
-        "caseMembers.id": userId,
-        "caseMembers.isActive": true,
-        aflag: true,
-        isSubcase: { $ne: true },
-      };
-      const userCases = await Case.find(caseQuery)
-        .limit(limit)
-        .skip(skip)
-        .populate([
-          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-          { path: "caseMembers.addedBy", select: "firstname lastname" },
-        ])
-        .lean();
-      if (userCases && userCases.length > 0) {
-        return res.json({ success: true, cases: userCases });
-      } else {
-        return res.json({ msg: "No cases Found" });
-      }
-    }
+        isSubcase: { $ne : true}
+      },
+      null,
+      { limit: limit, skip: skip }
+    ).populate([
+      { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+      { path: "caseMembers.addedBy", select: "firstname lastname" },
+    ]);
+
+    if (userCases && userCases.length > 0)
+      return res.json({ success: true, cases: userCases });
+    else return res.json({ msg: "No cases Found" });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
