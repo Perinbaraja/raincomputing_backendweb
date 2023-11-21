@@ -142,6 +142,7 @@ router.post("/login", async (req, res) => {
           appointmentStatus: isUser.appointmentStatus,
           profilePic: isUser.profilePic,
           notificationSound: isUser.notificationSound,
+          domains: isUser.domains,
           isNotifySound: true,
           admin: true,
         });
