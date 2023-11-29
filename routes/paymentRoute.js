@@ -1,8 +1,9 @@
 const express = require("express");
 const { identity } = require("lodash");
 const PaymentModel = require("../models/PaymentModel");
-const UserModel = require("../models/userModel");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
+const userModel = require("../models/userModel");
+const { sendMail } = require("../services/mail.services");
 const router = express.Router();
 const stripe = require("stripe")(
   "sk_test_51LYOZnSED7zxlOa8JJRGqPgogYBn0hw5geNTfpbNBlxT6JXyyUtU14QyB2qv1EZAwvC0Fw3NjugyNkk3zINBj2xh00pqSKN7nc"
@@ -72,7 +73,7 @@ router.post("/getPaymentId", async (req, res) => {
           })
           .lean();
 
-        const userData = await UserModel.findById(metadata?.user)
+        const userData = await userModel.findById(metadata?.user)
           .select("firstname lastname email")
           .lean();
 
