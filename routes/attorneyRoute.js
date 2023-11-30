@@ -216,6 +216,7 @@ router.post("/getAllAttorney", async (req, res) => {
   }
 });
 
+
 router.post("/regAttorneyDetails", async (req, res) => {
   const { id } = req.body;
   RegAttorneyModel.findById({ _id: id })
