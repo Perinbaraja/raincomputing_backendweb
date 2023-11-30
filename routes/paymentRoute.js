@@ -91,7 +91,7 @@ router.post("/getPaymentId", async (req, res) => {
                     <ul style="margin-bottom: 20px; font-size: 16px; line-height: 150%;">
                       <li>${userData.firstname}${userData.lastname}</li>
                       <li>${userData.email}</li>
-                      <li>Amount Paid: ${paymentQuery.payAmount}</li>
+                      <li>Amount Paid:${paymentQuery.payAmount}$</li>
                       <li>Rain Computing asks you to handle the case for the client.</li>
                       <li>Client paid for your services on Rain Computing website.</li>
                     </ul>
