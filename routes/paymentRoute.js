@@ -2,7 +2,7 @@ const express = require("express");
 const { identity } = require("lodash");
 const PaymentModel = require("../models/PaymentModel");
 const RegAttorneyModel = require("../models/RegAttorneyModel");
-const userModel = require("../models/userModel");
+const UserModel = require("../models/userModel");
 const { sendMail } = require("../services/mail.services");
 const router = express.Router();
 const stripe = require("stripe")(
@@ -73,7 +73,7 @@ router.post("/getPaymentId", async (req, res) => {
           })
           .lean();
 
-        const userData = await userModel.findById(metadata?.user)
+        const userData = await UserModel.findById(metadata?.user)
           .select("firstname lastname email")
           .lean();
 
