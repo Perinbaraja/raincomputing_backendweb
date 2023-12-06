@@ -4,6 +4,6 @@ const router = Router();
 
 router.get("", (req, res) => res.send("Mail Reply route"));
 
-router.get("/searchMail/:search", mailReplyController.searchMail);
+// router.get("/searchMail/:search", mailReplyController.searchMail);
 
 module.exports = router;

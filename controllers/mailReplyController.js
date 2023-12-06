@@ -493,6 +493,6 @@ async function readMail(req, res) {
 module.exports.mailReplyController = {
   getUser,
   getDrafts,
-  searchMail,
+  // searchMail,
   readMail,
 };
