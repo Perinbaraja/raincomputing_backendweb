@@ -273,152 +273,152 @@ async function getDrafts(req, res) {
 // }
 
 // Latest mail function
-// async function searchMail(req, res) {
-//   try {
-//     const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=@gmail.com is:UNREAD&INBOX`;
-//     const { token } = await oAuth2Client.getAccessToken();
-//     const config = generateConfig(url, token);
-//     const response = await axios(config);
-//     let sendMessages = [];
-//     if (response?.data?.messages?.length > 0) {
-//       Promise.all(
-//         response?.data?.messages?.map(async (mailMes) => {
-//           const readMailURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${mailMes?.id}`;
-//           const readMailConfig = generateConfig(readMailURL, token);
-//           const readMailResponse = await axios(readMailConfig);
-//           const messsageData = readMailResponse.data;
-//           const { payload } = messsageData;
-//           let validMessageData = "";
-//           let validAttachments = [];
-//           let parts = [payload];
-//           const subject = payload?.headers.find(
-//             (h) => h?.name === "Subject"
-//           )?.value;
-//           const mail = messsageData?.snippet;
-//           const emailIdMatch = mail.match(/\[Thread Id:\s*([^\]]+)\]/);
-//           const mailId = emailIdMatch?.[1] ?? "EmailId not found in snippet";
-//           const senderEmail = payload?.headers
-//             .find((h) => h?.name === "From")
-//             ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
-//           const group = await Group.findOne({ threadId: mailId }).populate({
-//             path: "groupMembers.id",
-//             select: "email",
-//           });
-//           const groupId = group?._id;
-//           const handleDocUpload = async ({
-//             fileName,
-//             mailId,
-//             attachmentId,
-//             contentType,
-//           }) => {
-//             const attachmentURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${mailId}/attachments/${attachmentId}`;
-//             const attachmentConfig = generateConfig(attachmentURL, token);
-//             const attachmentResponse = await axios(attachmentConfig);
-//             const attID = await GridFSUploader({
-//               data: attachmentResponse?.data?.data,
-//               fileName,
-//               contentType,
-//             });
-//             validAttachments.push({
-//               type: contentType,
-//               id: attID,
-//               name: fileName,
-//               aflag: true,
-//             });
-//           };
-//           if (group) {
-//             while (parts.length) {
-//               let part = parts.shift();
-//               if (part.parts) {
-//                 parts = parts.concat(part.parts);
-//               }
-//               if (part.mimeType === "text/html" && validMessageData === "") {
-//                 validMessageData =
-//                   `<strong>Subject: ${subject}</strong>` +
-//                   Buffer.from(part?.body?.data, "base64").toString();
-//               }
-//               if (mimeTypes.includes(part?.mimeType)) {
-//                 await handleDocUpload({
-//                   fileName: part?.filename || "mail document",
-//                   mailId: mailMes?.id,
-//                   attachmentId: part?.body?.attachmentId,
-//                   contentType: part?.mimeType,
-//                 });
-//               }
-//             }
-//     //
-//       const sender = group?.groupMembers?.find(
-//         (g) => g?.id?.email === senderEmail
-//       )?.id?._id;
-//       const receivers = group?.groupMembers
-//         ?.filter((gm) => gm?.id?.email !== senderEmail)
-//         ?.map((g) => g?.id?._id);
-//       const messageQuery = {
-//         groupId,
-//         sender,
-//         receivers,
-//         messageData: validMessageData,
-//       };
-//       if (group.caseId) {
-//         messageQuery.caseId = group.caseId;
-//       }
-//       if (validAttachments?.length > 0) {
-//         messageQuery.isAttachment = true;
-//         messageQuery.attachments = validAttachments;
-//       }
-//       const isEveryoneCondition = group?.threadIdCondition === "EveryOne";
-//       const isGroupMembersCondition = group?.threadIdCondition === "GroupMembers";
-//       if (isEveryoneCondition || (sender && isGroupMembersCondition)) {
-//         const createdMessage = await Message.create(messageQuery);
-//         if (createdMessage) {
-//           try {
-//             const { token: accessToken } = await oAuth2Client.getAccessToken();
-//             await axios({
-//               method: "post",
-//               url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
-//               headers: {
-//                 Authorization: `Bearer ${accessToken}`,
-//               },
-//               data: {
-//                 addLabelIds: ["Label_2117604939096943395"],
-//                 removeLabelIds: ["UNREAD"],
-//               },
-//             });
-//             sendMessages.push(createdMessage);
-//           } catch (error) {
-//             console.log({
-//               msg: "Failed to modify mail",
-//               error: error.message,
-//             });
-//           }
-//         } else {
-//           console.log({
-//             msg: "Failed to create message",
-//             groupId,
-//             data: response.data,
-//           });
-//         }
-//       } else {
-//         console.log({
-//           msg: "No appropriate condition found",
-//           groupId,
-//         });
-//       }
-//     } else {
-//       console.log({
-//         msg: "No group found",
-//         groupId,
-//       });
-//     }
-//         })
-//       )}
-//   } catch (error) {
-//     console.log("error : " + error);
-//     // return res.json({ error });
-//   }
-// }
+async function searchMail(req, res) {
+  try {
+    const url = `https://www.googleapis.com/gmail/v1/users/me/messages?q=@gmail.com is:UNREAD&INBOX`;
+    const { token } = await oAuth2Client.getAccessToken();
+    const config = generateConfig(url, token);
+    const response = await axios(config);
+    let sendMessages = [];
+    if (response?.data?.messages?.length > 0) {
+      Promise.all(
+        response?.data?.messages?.map(async (mailMes) => {
+          const readMailURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${mailMes?.id}`;
+          const readMailConfig = generateConfig(readMailURL, token);
+          const readMailResponse = await axios(readMailConfig);
+          const messsageData = readMailResponse.data;
+          const { payload } = messsageData;
+          let validMessageData = "";
+          let validAttachments = [];
+          let parts = [payload];
+          const subject = payload?.headers.find(
+            (h) => h?.name === "Subject"
+          )?.value;
+          const mail = messsageData?.snippet;
+          const emailIdMatch = mail.match(/\[Thread Id:\s*([^\]]+)\]/);
+          const mailId = emailIdMatch?.[1] ?? "EmailId not found in snippet";
+          const senderEmail = payload?.headers
+            .find((h) => h?.name === "From")
+            ?.value?.match(/[^@<\s]+@[^@\s>]+/)[0];
+          const group = await Group.findOne({ threadId: mailId }).populate({
+            path: "groupMembers.id",
+            select: "email",
+          });
+          const groupId = group?._id;
+          const handleDocUpload = async ({
+            fileName,
+            mailId,
+            attachmentId,
+            contentType,
+          }) => {
+            const attachmentURL = `https://gmail.googleapis.com//gmail/v1/users/me/messages/${mailId}/attachments/${attachmentId}`;
+            const attachmentConfig = generateConfig(attachmentURL, token);
+            const attachmentResponse = await axios(attachmentConfig);
+            const attID = await GridFSUploader({
+              data: attachmentResponse?.data?.data,
+              fileName,
+              contentType,
+            });
+            validAttachments.push({
+              type: contentType,
+              id: attID,
+              name: fileName,
+              aflag: true,
+            });
+          };
+          if (group) {
+            while (parts.length) {
+              let part = parts.shift();
+              if (part.parts) {
+                parts = parts.concat(part.parts);
+              }
+              if (part.mimeType === "text/html" && validMessageData === "") {
+                validMessageData =
+                  `<strong>Subject: ${subject}</strong>` +
+                  Buffer.from(part?.body?.data, "base64").toString();
+              }
+              if (mimeTypes.includes(part?.mimeType)) {
+                await handleDocUpload({
+                  fileName: part?.filename || "mail document",
+                  mailId: mailMes?.id,
+                  attachmentId: part?.body?.attachmentId,
+                  contentType: part?.mimeType,
+                });
+              }
+            }
+    //
+      const sender = group?.groupMembers?.find(
+        (g) => g?.id?.email === senderEmail
+      )?.id?._id;
+      const receivers = group?.groupMembers
+        ?.filter((gm) => gm?.id?.email !== senderEmail)
+        ?.map((g) => g?.id?._id);
+      const messageQuery = {
+        groupId,
+        sender,
+        receivers,
+        messageData: validMessageData,
+      };
+      if (group.caseId) {
+        messageQuery.caseId = group.caseId;
+      }
+      if (validAttachments?.length > 0) {
+        messageQuery.isAttachment = true;
+        messageQuery.attachments = validAttachments;
+      }
+      const isEveryoneCondition = group?.threadIdCondition === "EveryOne";
+      const isGroupMembersCondition = group?.threadIdCondition === "GroupMembers";
+      if (isEveryoneCondition || (sender && isGroupMembersCondition)) {
+        const createdMessage = await Message.create(messageQuery);
+        if (createdMessage) {
+          try {
+            const { token: accessToken } = await oAuth2Client.getAccessToken();
+            await axios({
+              method: "post",
+              url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${mailMes?.id}/modify`,
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+              data: {
+                addLabelIds: ["Label_2117604939096943395"],
+                removeLabelIds: ["UNREAD"],
+              },
+            });
+            sendMessages.push(createdMessage);
+          } catch (error) {
+            console.log({
+              msg: "Failed to modify mail",
+              error: error.message,
+            });
+          }
+        } else {
+          console.log({
+            msg: "Failed to create message",
+            groupId,
+            data: response.data,
+          });
+        }
+      } else {
+        console.log({
+          msg: "No appropriate condition found",
+          groupId,
+        });
+      }
+    } else {
+      console.log({
+        msg: "No group found",
+        groupId,
+      });
+    }
+        })
+      )}
+  } catch (error) {
+    console.log("error : " + error);
+    // return res.json({ error });
+  }
+}
 
-// setInterval(searchMail, 6000);
+setInterval(searchMail, 6000);
 
 // async function searchMail(req, res) {
 //   try {
@@ -493,6 +493,6 @@ async function readMail(req, res) {
 module.exports.mailReplyController = {
   getUser,
   getDrafts,
-  // searchMail,
+  searchMail,
   readMail,
 };
