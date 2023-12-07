@@ -19,7 +19,9 @@ const messageSchema = mongoose.Schema(
         ref: "UserModel",
       },
     ],
-
+  rID:{
+    type: mongoose.Schema.Types.ObjectId,
+  },
     replies: [
       {
         sender: {
