@@ -1,5 +1,6 @@
 const config = require("../config");
 const Group = require("../models/Group");
+const Message = require("../models/Message");
 
 const CREATE_GROUP = async (req, res) => {
   try {
@@ -65,27 +66,66 @@ const CREATE_ONE_ON_ONE_CHAT = async (req, res) => {
 const GET_ONE_ON_ONE_CHAT = async (req, res) => {
   try {
     const { userId } = req.body;
-    const query = {
-      isGroup: false,
-      aflag: true,
-      'groupMembers.id': userId,
-      'groupMembers.isActive': true,
-    };
-    const projection = {
-      'groupMembers.id': 1,
-      updatedAt: 1,
-    };
-    const chats = await Group.find(query, projection)
-      .sort({ updatedAt: -1 })
-      .populate('groupMembers.id', 'firstname lastname email profilePic')
-      .lean(); // Use lean queries for better performance if you only need plain objects
-    if (chats) {
-      return res.json({ success: true, groups: chats });
+    // Find all one-on-one chats where the user is a member
+    const chats = await Group.find(
+      {
+        isGroup: false,
+        aflag: true,
+        groupMembers: {
+          $elemMatch: {
+            id: userId,
+            isActive: true,
+          },
+        },
+      }
+    ).populate("groupMembers.id", "firstname lastname email profilePic");
+    if (!chats || chats.length === 0) {
+      return res.json({ success: true, groups: [] });
     }
+    // Get an array of group IDs
+    const chatIds = chats.map((chat) => chat._id);
+    // Find the last message for each group
+    const lastMessages = await Message.aggregate([
+      {
+        $match: {
+          groupId: { $in: chatIds },
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: "$groupId",
+          lastMessage: { $first: "$$ROOT" },
+        },
+      },
+    ]);
+
+    // Map lastMessages to their respective chats
+    chats.sort((a, b) => {
+      const lastMessageA = lastMessages.find(
+        (message) => message._id.toString() === a._id.toString()
+      );
+      const lastMessageB = lastMessages.find(
+        (message) => message._id.toString() === b._id.toString()
+      );
+
+      const timeA = lastMessageA
+        ? new Date(lastMessageA.lastMessage.createdAt)
+        : new Date(a.updatedAt);
+      const timeB = lastMessageB
+        ? new Date(lastMessageB.lastMessage.createdAt)
+        : new Date(b.updatedAt);
+
+      return timeB - timeA;
+    });
+    return res.json({ success: true, groups: chats });
   } catch (err) {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+
 // const GET_ONE_ON_ONE_CHAT = async (req, res) => {
 //   try {
 //     const { userId } = req.body;

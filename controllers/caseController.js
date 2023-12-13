@@ -81,7 +81,7 @@ const CREATE = async (req, res) => {
     const isCaseId = await Case.findOne({ caseId });
     if (isCaseId) return res.json({ msg: "Case Id Already existing" });
     const struturedMembers = members.map((m) => ({ id: m, addedBy: admin }));
-    console.log("members", members);
+
     const caseQuery = {
       caseId,
       caseName,
@@ -107,7 +107,7 @@ const CREATE = async (req, res) => {
         threadIdCondition: createdCase?.threadIdCondition,
       };
       const createdGroup = await Group.create(groupQuery);
-      const selectedMembers = membersEmail.map((m)=>m)
+      const selectedMembers = membersEmail.map((m) => m)
       if (createdGroup) {
         // Send email to members after creating the case
         const mailOptions = {
@@ -142,7 +142,7 @@ const CREATE = async (req, res) => {
 const GETBYUSERID = async (req, res) => {
   try {
     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
-    if (searchText ) {
+    if (searchText) {
       const skip = (page - 1) * limit;
       const messageQuery = {
         messageData: { $regex: searchText, $options: "i" },
@@ -190,6 +190,48 @@ const GETBYUSERID = async (req, res) => {
           { path: "caseMembers.addedBy", select: "firstname lastname" },
         ])
         .lean();
+
+      // Get an array of case IDs
+      const caseIds = userCases.map((userCase) => userCase._id);
+
+      // Find the last message for each case
+      const lastMessages = await Message.aggregate([
+        {
+          $match: {
+            caseId: { $in: caseIds },
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $group: {
+            _id: "$caseId",
+            lastMessage: { $first: "$$ROOT" },
+          },
+        },
+      ]);
+
+      // Map lastMessages to their respective cases
+      userCases.sort((a, b) => {
+        const lastMessageA = lastMessages.find(
+          (message) => message._id.toString() === a._id.toString()
+        );
+        const lastMessageB = lastMessages.find(
+          (message) => message._id.toString() === b._id.toString()
+        );
+
+        const timeA = lastMessageA
+          ? new Date(lastMessageA.lastMessage.createdAt)
+          : new Date(a.updatedAt);
+        const timeB = lastMessageB
+          ? new Date(lastMessageB.lastMessage.createdAt)
+          : new Date(b.updatedAt);
+
+        return timeB - timeA;
+      });
+
+
       if (userCases && userCases.length > 0) {
         return res.json({ success: true, cases: userCases });
       } else {
@@ -273,7 +315,7 @@ const GETBYUSERID = async (req, res) => {
 
 const UPDATE_CASE = async (req, res) => {
   try {
-    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt,threadIdCondition } = req.body;
+    const { id, caseId, caseName, serialNumber, docEvent, docDate, members, admin, deleteIt, threadIdCondition } = req.body;
 
     if (deleteIt) {
       const deletedCase = await Case.findByIdAndUpdate(id, {
@@ -296,7 +338,7 @@ const UPDATE_CASE = async (req, res) => {
         serialNumber,
         caseMembers: structuredMembers,
         notifyMembers: members,
-        threadIdCondition:threadIdCondition,
+        threadIdCondition: threadIdCondition,
       };
 
       const updatedCase = await Case.findByIdAndUpdate(id, updateQuery, { new: true })
