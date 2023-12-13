@@ -303,6 +303,7 @@ const GETBYUSERID = async (req, res) => {
     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
   }
 };
+
 // const GETBYUSERID = async (req, res) => {
 //   try {
 //     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
