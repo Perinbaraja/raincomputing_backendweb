@@ -139,109 +139,109 @@ const CREATE = async (req, res) => {
     });
   }
 };
-// const GETBYUSERID = async (req, res) => {
-//   try {
-//     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
-//     if (searchText) {
-//       const skip = (page - 1) * limit;
-//       const messageQuery = {
-//         messageData: { $regex: searchText, $options: "i" },
-//         aflag: true,
-//       };
-//       const messages = await Message.find(messageQuery).select('caseId').lean();
-//       const matchingCaseIds = messages.map((message) => message.caseId);
-//       const caseQuery = {
-//         $or: [
-//           { caseName: { $regex: "^" + searchText, $options: "i" } },
-//           { caseId: { $regex: "^" + searchText, $options: "i" } },
-//           { _id: { $in: matchingCaseIds } },
-//         ],
-//         "caseMembers.id": userId,
-//         "caseMembers.isActive": true,
-//         aflag: true,
-//         isSubcase: { $ne: true },
-//       };
-//       const userCases = await Case.find(caseQuery)
-//         .limit(limit)
-//         .skip(skip)
-//         .populate([
-//           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-//           { path: "caseMembers.addedBy", select: "firstname lastname" },
-//         ])
-//         .lean();
-//       if (userCases && userCases.length > 0) {
-//         return res.json({ success: true, cases: userCases });
-//       } else {
-//         return res.json({ msg: "No cases Found" });
-//       }
-//     } else {
-//       const skip = (page - 1) * limit;
-//       const caseQuery = {
-//         "caseMembers.id": userId,
-//         "caseMembers.isActive": true,
-//         aflag: true,
-//         isSubcase: { $ne: true },
-//       };
-//       const userCases = await Case.find(caseQuery)
-//         .limit(limit)
-//         .skip(skip)
-//         .populate([
-//           { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-//           { path: "caseMembers.addedBy", select: "firstname lastname" },
-//         ])
-//         .lean();
+const GETBYUSERID = async (req, res) => {
+  try {
+    const { userId, page = 1, limit = 50, searchText = "" } = req.body;
+    if (searchText) {
+      const skip = (page - 1) * limit;
+      const messageQuery = {
+        messageData: { $regex: searchText, $options: "i" },
+        aflag: true,
+      };
+      const messages = await Message.find(messageQuery).select('caseId').lean();
+      const matchingCaseIds = messages.map((message) => message.caseId);
+      const caseQuery = {
+        $or: [
+          { caseName: { $regex: "^" + searchText, $options: "i" } },
+          { caseId: { $regex: "^" + searchText, $options: "i" } },
+          { _id: { $in: matchingCaseIds } },
+        ],
+        "caseMembers.id": userId,
+        "caseMembers.isActive": true,
+        aflag: true,
+        isSubcase: { $ne: true },
+      };
+      const userCases = await Case.find(caseQuery)
+        .limit(limit)
+        .skip(skip)
+        .populate([
+          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.addedBy", select: "firstname lastname" },
+        ])
+        .lean();
+      if (userCases && userCases.length > 0) {
+        return res.json({ success: true, cases: userCases });
+      } else {
+        return res.json({ msg: "No cases Found" });
+      }
+    } else {
+      const skip = (page - 1) * limit;
+      const caseQuery = {
+        "caseMembers.id": userId,
+        "caseMembers.isActive": true,
+        aflag: true,
+        isSubcase: { $ne: true },
+      };
+      const userCases = await Case.find(caseQuery)
+        .limit(limit)
+        .skip(skip)
+        .populate([
+          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.addedBy", select: "firstname lastname" },
+        ])
+        .lean();
 
-//       // Get an array of case IDs
-//       const caseIds = userCases.map((userCase) => userCase._id);
+      // Get an array of case IDs
+      const caseIds = userCases.map((userCase) => userCase._id);
 
-//       // Find the last message for each case
-//       const lastMessages = await Message.aggregate([
-//         {
-//           $match: {
-//             caseId: { $in: caseIds },
-//           },
-//         },
-//         {
-//           $sort: { createdAt: -1 },
-//         },
-//         {
-//           $group: {
-//             _id: "$caseId",
-//             lastMessage: { $first: "$$ROOT" },
-//           },
-//         },
-//       ]);
+      // Find the last message for each case
+      const lastMessages = await Message.aggregate([
+        {
+          $match: {
+            caseId: { $in: caseIds },
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $group: {
+            _id: "$caseId",
+            lastMessage: { $first: "$$ROOT" },
+          },
+        },
+      ]);
 
-//       // Map lastMessages to their respective cases
-//       userCases.sort((a, b) => {
-//         const lastMessageA = lastMessages.find(
-//           (message) => message._id.toString() === a._id.toString()
-//         );
-//         const lastMessageB = lastMessages.find(
-//           (message) => message._id.toString() === b._id.toString()
-//         );
+      // Map lastMessages to their respective cases
+      userCases.sort((a, b) => {
+        const lastMessageA = lastMessages.find(
+          (message) => message._id.toString() === a._id.toString()
+        );
+        const lastMessageB = lastMessages.find(
+          (message) => message._id.toString() === b._id.toString()
+        );
 
-//         const timeA = lastMessageA
-//           ? new Date(lastMessageA.lastMessage.createdAt)
-//           : new Date(a.updatedAt);
-//         const timeB = lastMessageB
-//           ? new Date(lastMessageB.lastMessage.createdAt)
-//           : new Date(b.updatedAt);
+        const timeA = lastMessageA
+          ? new Date(lastMessageA.lastMessage.createdAt)
+          : new Date(a.updatedAt);
+        const timeB = lastMessageB
+          ? new Date(lastMessageB.lastMessage.createdAt)
+          : new Date(b.updatedAt);
 
-//         return timeB - timeA;
-//       });
+        return timeB - timeA;
+      });
 
 
-//       if (userCases && userCases.length > 0) {
-//         return res.json({ success: true, cases: userCases });
-//       } else {
-//         return res.json({ msg: "No cases Found" });
-//       }
-//     }
-//   } catch (err) {
-//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
-//   }
-// };
+      if (userCases && userCases.length > 0) {
+        return res.json({ success: true, cases: userCases });
+      } else {
+        return res.json({ msg: "No cases Found" });
+      }
+    }
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
 // const GETBYUSERID = async (req, res) => {
 //   try {
 //     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
@@ -304,39 +304,39 @@ const CREATE = async (req, res) => {
 //   }
 // };
 
-const GETBYUSERID = async (req, res) => {
-  try {
-    const { userId, page = 1, limit = 50, searchText = "" } = req.body;
-    const skip = (page - 1) * limit;
-    const userCases = await Case.find(
-      {
-        $or: [
-          { caseName: { $regex: "^" + searchText, $options: "i" } },
-          { caseId: { $regex: "^" + searchText, $options: "i" } },
-        ],
-        caseMembers: {
-          $elemMatch: {
-            id: userId,
-            isActive: true,
-          },
-        },
-        aflag: true,
-        isSubcase: { $ne : true}
-      },
-      null,
-      { limit: limit, skip: skip }
-    ).populate([
-      { path: "caseMembers.id", select: "firstname lastname profilePic email" },
-      { path: "caseMembers.addedBy", select: "firstname lastname" },
-    ]);
+// const GETBYUSERID = async (req, res) => {
+//   try {
+//     const { userId, page = 1, limit = 50, searchText = "" } = req.body;
+//     const skip = (page - 1) * limit;
+//     const userCases = await Case.find(
+//       {
+//         $or: [
+//           { caseName: { $regex: "^" + searchText, $options: "i" } },
+//           { caseId: { $regex: "^" + searchText, $options: "i" } },
+//         ],
+//         caseMembers: {
+//           $elemMatch: {
+//             id: userId,
+//             isActive: true,
+//           },
+//         },
+//         aflag: true,
+//         isSubcase: { $ne : true}
+//       },
+//       null,
+//       { limit: limit, skip: skip }
+//     ).populate([
+//       { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+//       { path: "caseMembers.addedBy", select: "firstname lastname" },
+//     ]);
 
-    if (userCases && userCases.length > 0)
-      return res.json({ success: true, cases: userCases });
-    else return res.json({ msg: "No cases Found" });
-  } catch (err) {
-    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
-  }
-};
+//     if (userCases && userCases.length > 0)
+//       return res.json({ success: true, cases: userCases });
+//     else return res.json({ msg: "No cases Found" });
+//   } catch (err) {
+//     return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+//   }
+// };
 
 
 const UPDATE_CASE = async (req, res) => {
