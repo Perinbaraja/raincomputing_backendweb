@@ -38,7 +38,9 @@ const messageSchema = mongoose.Schema(
         }
       },
     ],
-
+    subject: {
+      type: String,
+    },
     messageData: {
       type: String,
     },

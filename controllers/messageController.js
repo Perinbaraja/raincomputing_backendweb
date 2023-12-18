@@ -14,6 +14,7 @@ const SENDMESSAGE = async (req, res) => {
       groupId,
       sender,
       receivers,
+      subject,
       messageData,
       isAttachment,
       attachments,
@@ -26,6 +27,7 @@ const SENDMESSAGE = async (req, res) => {
       groupId,
       sender,
       receivers,
+      subject,
       messageData,
       isAttachment,
       attachments,
@@ -169,7 +171,7 @@ const DELETEMSG = async (req, res) => {
 };
 const UPDATE_MESSAGE = async (req, res) => {
   try {
-    const { _id, messageData, sender,createdAt } = req.body;
+    const { _id, subject, messageData, sender,createdAt } = req.body;
 
     today = new Date();
     time1 = today.valueOf();
@@ -178,6 +180,7 @@ const UPDATE_MESSAGE = async (req, res) => {
     time3 = time1 - time2;
 
     const updateQuery = {
+      subject,
       messageData,
       sender,
       isEdit: true, // If you want to update the sender field
