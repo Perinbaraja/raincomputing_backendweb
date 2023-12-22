@@ -168,7 +168,7 @@ const GETBYUSERID = async (req, res) => {
         .limit(limit)
         .skip(skip)
         .populate([
-          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.id", select: "firstname lastname profilePic email attorneyStatus" },
           { path: "caseMembers.addedBy", select: "firstname lastname" },
         ])
         .lean();
@@ -189,7 +189,7 @@ const GETBYUSERID = async (req, res) => {
         .limit(limit)
         .skip(skip)
         .populate([
-          { path: "caseMembers.id", select: "firstname lastname profilePic email" },
+          { path: "caseMembers.id", select: "firstname lastname profilePic email attorneyStatus" },
           { path: "caseMembers.addedBy", select: "firstname lastname" },
         ])
         .lean();
