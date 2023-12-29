@@ -218,7 +218,34 @@ const UPDATE_GROUP = async (req, res) => {
   }
 };
 
+const GETALLMESSAGES = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const getAllChats = await Group.find(
+      {
+        aflag: true,
+        'groupMembers.id': userId,
+        'groupMembers.isActive': true,
+      },
+      null,
+      { sort: { updatedAt: -1 } }
+    );
+    const chatIds = getAllChats.map(chat => chat._id);
+    const recentMessages = await Message.find({
+      groupId: { $in: chatIds },
+      sender: { $ne: userId },
+    }).sort({ createdAt: -1 });
+    const latestRecentMessage = recentMessages.slice(0, 10)
+
+    return res.json({ success: true, chats: latestRecentMessage });
+  } catch (err) {
+    return res.json({ msg: err || config.DEFAULT_RES_ERROR });
+  }
+};
+
+
 module.exports.groupController = {
+  GETALLMESSAGES,
   CREATE_GROUP,
   GETBYCASEID_USERID,
   CREATE_ONE_ON_ONE_CHAT,
