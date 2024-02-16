@@ -113,6 +113,7 @@ const GET_ONE_ON_ONE_CHAT = async (req, res) => {
         (message) => message._id.toString() === b._id.toString()
       );
 
+      
       const timeA = lastMessageA
         ? new Date(lastMessageA.lastMessage.createdAt)
         : new Date(a.updatedAt);
